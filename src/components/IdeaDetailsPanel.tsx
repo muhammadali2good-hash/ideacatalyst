@@ -157,22 +157,30 @@ export default function IdeaDetailsPanel({ idea, onClose }: IdeaDetailsPanelProp
             <g
               key={i}
               className="cursor-pointer"
-              onMouseEnter={() => setHoveredRadarIdx(i)}
-              onMouseLeave={() => setHoveredRadarIdx(null)}
             >
+              {/* Visual elements have pointer-events disabled to prevent layout thrashing */}
               <circle
                 cx={v.scoreX}
                 cy={v.scoreY}
                 r={hoveredRadarIdx === i ? '7' : '4.5'}
-                className="fill-[#FF8B2B] stroke-white dark:stroke-[#121110] transition-all duration-300"
+                className="fill-[#FF8B2B] stroke-white dark:stroke-[#121110] transition-all duration-300 pointer-events-none"
                 strokeWidth="1.5"
               />
               <circle
                 cx={v.scoreX}
                 cy={v.scoreY}
                 r={hoveredRadarIdx === i ? '12' : '9'}
-                className="fill-none stroke-[#FF8B2B]/20 transition-all duration-300"
+                className="fill-none stroke-[#FF8B2B]/20 transition-all duration-300 pointer-events-none"
                 strokeWidth="1"
+              />
+              {/* Single, solid transparent overlay trigger region */}
+              <circle
+                cx={v.scoreX}
+                cy={v.scoreY}
+                r="16"
+                fill="transparent"
+                onMouseEnter={() => setHoveredRadarIdx(i)}
+                onMouseLeave={() => setHoveredRadarIdx(null)}
               />
             </g>
           ))}

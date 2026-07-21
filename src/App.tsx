@@ -465,7 +465,7 @@ Be creative, complete, and extremely realistic in filling out every field. Do no
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
             onNewAnalysisClick={handleNewAnalysisClick}
-            ideasCount={ideas.length}
+            ideas={ideas}
           />
 
           {/* MAIN PAGE CONTENTS ROUTING */}

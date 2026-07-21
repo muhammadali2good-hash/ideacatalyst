@@ -287,13 +287,13 @@ export default function BentoStats({ ideas }: BentoStatsProps) {
                 <p className="text-xs text-[#707070] font-normal">Waiting for ideas to plot radar strengths.</p>
               </div>
             ) : (
-              <div className="relative">
+              <div className="relative w-40 h-40">
                 {/* Floating radar dimension value label */}
                 {hoveredRadarDim && (
-                  <div className="absolute bg-black/85 backdrop-blur-sm shadow-md px-2 py-1 rounded-md text-[9px] font-normal text-white z-20 pointer-events-none whitespace-nowrap"
+                  <div className="absolute bg-black/85 dark:bg-[#1E1C1B]/95 backdrop-blur-sm shadow-md px-2 py-1 rounded-md text-[9px] font-normal text-white z-20 pointer-events-none whitespace-nowrap transition-all duration-150"
                     style={{
-                      left: `${hoveredRadarDim.x}px`,
-                      top: `${hoveredRadarDim.y - 15}px`,
+                      left: `${(hoveredRadarDim.x / 120) * 100}%`,
+                      top: `${(hoveredRadarDim.y / 120) * 100 - 6}%`,
                       transform: 'translate(-50%, -100%)'
                     }}
                   >
@@ -302,7 +302,7 @@ export default function BentoStats({ ideas }: BentoStatsProps) {
                 )}
 
                 {/* Radar SVG */}
-                <svg className="w-40 h-40" viewBox="0 0 120 120">
+                <svg className="w-full h-full" viewBox="0 0 120 120">
                   {/* Hexagon grid background */}
                   <polygon points="60,20 95,40 95,80 60,100 25,80 25,40" fill="none" stroke="rgba(0,0,0,0.04)" strokeWidth="1" />
                   <polygon points="60,35 86,50 86,70 60,85 34,70 34,50" fill="none" stroke="rgba(0,0,0,0.04)" strokeWidth="1" />
@@ -342,9 +342,21 @@ export default function BentoStats({ ideas }: BentoStatsProps) {
                       cy={pt.y}
                       r="2.5"
                       fill="#FF8B2B"
+                      className="pointer-events-none transition-all duration-150"
+                    />
+                  ))}
+
+                  {/* Invisible roomy hover triggers for lag-free cursor interaction */}
+                  {radarPoints.map((pt, idx) => (
+                    <circle
+                      key={`trigger-${idx}`}
+                      cx={pt.x}
+                      cy={pt.y}
+                      r="14"
+                      fill="transparent"
+                      className="cursor-pointer"
                       onMouseEnter={() => setHoveredRadarDim({ name: pt.name, val: pt.val, x: pt.x, y: pt.y })}
                       onMouseLeave={() => setHoveredRadarDim(null)}
-                      className="cursor-pointer hover:scale-150 transition-transform"
                     />
                   ))}
                 </svg>
