@@ -15,6 +15,7 @@ import AnalyticsPanel from './components/AnalyticsPanel';
 import ReportsPanel from './components/ReportsPanel';
 import SettingsPanel from './components/SettingsPanel';
 import LandingPage from './components/LandingPage';
+import ExtractionPanel from './components/ExtractionPanel';
 
 import { Sparkles, ArrowRight, TrendingUp, SlidersHorizontal, Search, RefreshCw, Layers } from 'lucide-react';
 
@@ -600,6 +601,14 @@ Be creative, complete, and extremely realistic in filling out every field. Do no
     }
   };
 
+  const handleImportExtractedIdeas = (newIdeas: Idea[]) => {
+    setIdeas((prev) => [...newIdeas, ...prev]);
+    if (newIdeas.length > 0) {
+      setSelectedIdea(newIdeas[0]);
+    }
+    setActiveTab('ideas');
+  };
+
   // Compute live processed ideas array, dynamically recalculating the Opportunity Scores
   // based on current rule weights!
   const processedIdeas = ideas.map((idea) => {
@@ -844,6 +853,14 @@ Be creative, complete, and extremely realistic in filling out every field. Do no
                   analysisError={analysisError}
                 />
               </div>
+            )}
+
+            {/* TAB: UNIVERSAL IDEA EXTRACTION CONSOLE */}
+            {activeTab === 'extraction' && (
+              <ExtractionPanel
+                onImportIdeas={handleImportExtractedIdeas}
+                activeIdeasCount={ideas.length}
+              />
             )}
 
             {/* TAB: EVALUATION RULES */}
