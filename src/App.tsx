@@ -14,11 +14,12 @@ import MarketResearchPanel from './components/MarketResearchPanel';
 import AnalyticsPanel from './components/AnalyticsPanel';
 import ReportsPanel from './components/ReportsPanel';
 import SettingsPanel from './components/SettingsPanel';
+import LandingPage from './components/LandingPage';
 
 import { Sparkles, ArrowRight, TrendingUp, SlidersHorizontal, Search, RefreshCw, Layers } from 'lucide-react';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<string>('dashboard');
+  const [activeTab, setActiveTab] = useState<string>('landing');
   const [searchQuery, setSearchQuery] = useState<string>('');
   
   // Data States loaded from persistent browser local storage ("chrome db storage")
@@ -422,6 +423,10 @@ Be creative, complete, and extremely realistic in filling out every field. Do no
       consoleEl.scrollIntoView({ behavior: 'smooth' });
     }
   };
+
+  if (activeTab === 'landing') {
+    return <LandingPage onGoToDashboard={() => setActiveTab('dashboard')} />;
+  }
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-[#FAF8F5] flex p-4 text-[#1B1B1B] dot-grid">
