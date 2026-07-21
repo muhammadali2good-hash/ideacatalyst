@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Idea } from '../types';
-import { Heart, Share2, ArrowUpRight, Folder, TrendingUp, AlertTriangle } from 'lucide-react';
+import { Heart, Share2, ArrowUpRight, Folder, TrendingUp, AlertTriangle, Trash2 } from 'lucide-react';
 
 interface IdeaCardProps {
   key?: string;
@@ -8,9 +8,12 @@ interface IdeaCardProps {
   onOpenDetails: (idea: Idea) => void;
   isFavorited: boolean;
   onToggleFavorite: (id: string) => void;
+  onDeleteIdea?: (id: string) => void;
 }
 
-export default function IdeaCard({ idea, onOpenDetails, isFavorited, onToggleFavorite }: IdeaCardProps) {
+export default function IdeaCard({ idea, onOpenDetails, isFavorited, onToggleFavorite, onDeleteIdea }: IdeaCardProps) {
+  const [isConfirming, setIsConfirming] = useState(false);
+
   // Map score color
   const getScoreColor = (score: number) => {
     if (score >= 85) return 'stroke-[#FF8B2B]';
@@ -52,6 +55,40 @@ export default function IdeaCard({ idea, onOpenDetails, isFavorited, onToggleFav
       id={`idea-card-${idea.id}`}
       className="liquid-glass-card spring-transition spring-hover rounded-3xl p-6 group relative overflow-hidden flex flex-col justify-between h-[300px]"
     >
+      {/* Inline Delete Confirmation Overlay */}
+      {isConfirming && (
+        <div className="absolute inset-0 bg-white/95 dark:bg-[#1E1C1B]/95 backdrop-blur-xs flex flex-col items-center justify-center p-6 z-30 animate-fadeIn text-center">
+          <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 mb-2.5">
+            <Trash2 className="w-5 h-5 animate-pulse" />
+          </div>
+          <h4 className="text-xs font-bold text-[#1B1B1B] dark:text-[#FAF8F5]">Delete this idea?</h4>
+          <p className="text-[10px] text-[#707070] dark:text-[#999999] max-w-[200px] mt-1 leading-snug">
+            This will permanently remove "{idea.title}" from your backlog.
+          </p>
+          <div className="flex gap-2 mt-4 w-full justify-center">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsConfirming(false);
+              }}
+              className="px-3 py-1.5 rounded-xl text-[10px] font-bold text-[#707070] dark:text-[#999999] bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onDeleteIdea) onDeleteIdea(idea.id);
+                setIsConfirming(false);
+              }}
+              className="px-3 py-1.5 rounded-xl text-[10px] font-bold text-white bg-red-500 hover:bg-red-600 shadow-xs transition-colors cursor-pointer"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Glow highlight behind card on hover */}
       <div className="absolute -inset-px bg-gradient-to-tr from-[#FF9D42]/0 via-[#FF9D42]/0 to-[#FF9D42]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-3xl" />
 
@@ -135,6 +172,17 @@ export default function IdeaCard({ idea, onOpenDetails, isFavorited, onToggleFav
 
         {/* Icons row */}
         <div className="flex items-center gap-1.5">
+          {onDeleteIdea && (
+            <button
+              id={`delete-btn-${idea.id}`}
+              onClick={(e) => { e.stopPropagation(); setIsConfirming(true); }}
+              className="w-8 h-8 rounded-xl flex items-center justify-center bg-black/5 hover:bg-red-500/10 text-[#707070] hover:text-red-500 transition-colors cursor-pointer"
+              title="Delete Idea"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          )}
+
           <button
             id={`fav-btn-${idea.id}`}
             onClick={(e) => { e.stopPropagation(); onToggleFavorite(idea.id); }}

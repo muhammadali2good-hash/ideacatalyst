@@ -19,6 +19,14 @@ import {
   DollarSign as MoneyIcon,
   HelpCircle,
 } from 'lucide-react';
+import {
+  Radar,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  ResponsiveContainer,
+} from 'recharts';
 
 interface IdeaDetailsPanelProps {
   idea: Idea | null;
@@ -66,180 +74,72 @@ export default function IdeaDetailsPanel({ idea, onClose }: IdeaDetailsPanelProp
 
   // Radar chart metrics mapping
   const radarMetrics = [
-    { label: 'Market', value: idea.marketStrength },
-    { label: 'Feasibility', value: idea.feasibility },
-    { label: 'Revenue', value: idea.revenuePotential },
-    { label: 'Growth', value: idea.growthProbability },
-    { label: 'SEO Opt', value: idea.seoOpportunity },
-    { label: 'Moat', value: idea.productStrength },
+    { subject: 'Market', value: idea.marketStrength, idx: 0, description: "Market strength: Customer segment volume, pricing depth, and urgency of problem solution." },
+    { subject: 'Feasibility', value: idea.feasibility, idx: 1, description: "Feasibility level: Simplicity of initial technology, MVP speed, and low cloud operational cost." },
+    { subject: 'Revenue', value: idea.revenuePotential, idx: 2, description: "Revenue potential: Premium pricing tiering, advertising monetization multipliers, and SaaS margins." },
+    { subject: 'Growth', value: idea.growthProbability, idx: 3, description: "Growth multiplier: SEO search intent frequency, viral referral mechanics, and low CPA acquisition." },
+    { subject: 'SEO Opt', value: idea.seoOpportunity, idx: 4, description: "SEO Opportunity: Relative lack of established corporate search ranking competitors on top search keywords." },
+    { subject: 'Moat', value: idea.productStrength, idx: 5, description: "Product Moat defense: IP barriers, unique integrations, proprietary custom templates, and lock-in loops." },
   ];
 
-  // Helper to draw Radar Chart
+  // Helper to draw Radar Chart using Recharts
   const renderRadarChart = () => {
-    const cx = 160;
-    const cy = 160;
-    const r = 100;
-    const pointsCount = radarMetrics.length;
-
-    // Calculate vertex coordinates
-    const vertices = radarMetrics.map((m, i) => {
-      const angle = (i * 2 * Math.PI) / pointsCount - Math.PI / 2;
-      return {
-        x: cx + r * Math.cos(angle),
-        y: cy + r * Math.sin(angle),
-        labelX: cx + (r + 24) * Math.cos(angle),
-        labelY: cy + (r + 14) * Math.sin(angle),
-        scoreX: cx + (r * (m.value / 100)) * Math.cos(angle),
-        scoreY: cy + (r * (m.value / 100)) * Math.sin(angle),
-        label: m.label,
-        value: m.value,
-      };
-    });
-
-    // Hexagonal Grid levels
-    const gridLevels = [0.25, 0.5, 0.75, 1.0];
-    const scorePathPoints = vertices.map(v => `${v.scoreX},${v.scoreY}`).join(' ');
-
     return (
       <div className="flex flex-col items-center justify-center p-4 bg-white/50 dark:bg-[#1A1817]/40 backdrop-blur-md rounded-3xl border border-black/5 dark:border-white/5 shadow-sm w-full transition-colors">
         <span className="text-[11px] font-bold text-[#FF8B2B] uppercase tracking-wider mb-2">
           Idea Strength Matrix
         </span>
-        <svg className="w-full max-w-[280px] h-auto aspect-square animate-fadeIn" viewBox="0 0 320 320">
-          {/* Hexagonal grid backgrounds */}
-          {gridLevels.map((level, gridIdx) => {
-            const levelPoints = vertices.map(v => {
-              const angle = (vertices.indexOf(v) * 2 * Math.PI) / pointsCount - Math.PI / 2;
-              return `${cx + r * level * Math.cos(angle)},${cy + r * level * Math.sin(angle)}`;
-            }).join(' ');
-            return (
-              <polygon
-                key={gridIdx}
-                points={levelPoints}
-                fill="none"
-                className="stroke-black/5 dark:stroke-white/5"
-                strokeWidth="1"
-                strokeDasharray={gridIdx === 3 ? 'none' : '3,3'}
-              />
-            );
-          })}
-
-          {/* Grid radiating spoke lines */}
-          {vertices.map((v, i) => (
-            <line
-              key={i}
-              x1={cx}
-              y1={cy}
-              x2={v.x}
-              y2={v.y}
-              className={`transition-colors duration-300 ${
-                hoveredRadarIdx === i ? 'stroke-[#FF8B2B]' : 'stroke-black/5 dark:stroke-white/5'
-              }`}
-              strokeWidth={hoveredRadarIdx === i ? '2' : '1.2'}
-            />
-          ))}
-
-          {/* Grid Level Labels */}
-          <text x={cx + 5} y={cy - r * 0.5 + 4} className="text-[8px] fill-[#999999] dark:fill-stone-500 font-medium">50%</text>
-          <text x={cx + 5} y={cy - r + 4} className="text-[8px] fill-[#999999] dark:fill-stone-500 font-medium">100%</text>
-
-          {/* Value Area Polygon */}
-          <polygon
-            points={scorePathPoints}
-            fill="rgba(255,157,66,0.18)"
-            stroke="#FF8B2B"
-            strokeWidth="2"
-            className="transition-all duration-700"
-          />
-
-          {/* Glowing Vertex Dots for Actual Scores */}
-          {vertices.map((v, i) => (
-            <g
-              key={i}
-              className="cursor-pointer"
+        
+        <div className="w-full h-[240px] flex items-center justify-center relative select-none">
+          <ResponsiveContainer width="100%" height="100%">
+            <RadarChart
+              cx="50%"
+              cy="50%"
+              outerRadius="72%"
+              data={radarMetrics}
+              onMouseMove={(state) => {
+                if (state && typeof state.activeTooltipIndex === 'number') {
+                  setHoveredRadarIdx(state.activeTooltipIndex);
+                } else {
+                  setHoveredRadarIdx(null);
+                }
+              }}
+              onMouseLeave={() => setHoveredRadarIdx(null)}
             >
-              {/* Visual elements have pointer-events disabled to prevent layout thrashing */}
-              <circle
-                cx={v.scoreX}
-                cy={v.scoreY}
-                r={hoveredRadarIdx === i ? '7' : '4.5'}
-                className="fill-[#FF8B2B] stroke-white dark:stroke-[#121110] transition-all duration-300 pointer-events-none"
-                strokeWidth="1.5"
+              <PolarGrid stroke="rgba(0,0,0,0.06)" className="dark:stroke-white/10" />
+              <PolarAngleAxis
+                dataKey="subject"
+                tick={{ fill: 'currentColor', fontSize: 10, fontWeight: 'bold' }}
+                className="text-[#1B1B1B] dark:text-[#FAF8F5] transition-colors"
               />
-              <circle
-                cx={v.scoreX}
-                cy={v.scoreY}
-                r={hoveredRadarIdx === i ? '12' : '9'}
-                className="fill-none stroke-[#FF8B2B]/20 transition-all duration-300 pointer-events-none"
-                strokeWidth="1"
+              <PolarRadiusAxis
+                angle={30}
+                domain={[0, 100]}
+                tick={{ fill: '#999999', fontSize: 8 }}
+                axisLine={false}
               />
-              {/* Single, solid transparent overlay trigger region */}
-              <circle
-                cx={v.scoreX}
-                cy={v.scoreY}
-                r="16"
-                fill="transparent"
-                onMouseEnter={() => setHoveredRadarIdx(i)}
-                onMouseLeave={() => setHoveredRadarIdx(null)}
+              <Radar
+                name="Score"
+                dataKey="value"
+                stroke="#FF8B2B"
+                fill="#FF8B2B"
+                fillOpacity={0.16}
+                dot={{ r: 4.5, stroke: '#FF8B2B', strokeWidth: 1.5, fill: '#fff' }}
+                activeDot={{ r: 7.5, stroke: '#FF8B2B', strokeWidth: 2, fill: '#fff' }}
               />
-            </g>
-          ))}
-
-          {/* Axis Labels */}
-          {vertices.map((v, i) => {
-            // Anchor calculation for visual centering
-            let textAnchor = "middle";
-            if (v.labelX > cx + 10) textAnchor = "start";
-            if (v.labelX < cx - 10) textAnchor = "end";
-
-            const isHovered = hoveredRadarIdx === i;
-
-            return (
-              <g
-                key={i}
-                className="cursor-pointer"
-                onMouseEnter={() => setHoveredRadarIdx(i)}
-                onMouseLeave={() => setHoveredRadarIdx(null)}
-              >
-                <text
-                  x={v.labelX}
-                  y={v.labelY}
-                  textAnchor={textAnchor}
-                  className={`text-[10px] font-bold transition-all duration-300 ${
-                    isHovered ? 'fill-[#FF8B2B]' : 'fill-[#1B1B1B] dark:fill-[#FAF8F5]'
-                  }`}
-                >
-                  {v.label}
-                </text>
-                <text
-                  x={v.labelX}
-                  y={v.labelY + 11}
-                  textAnchor={textAnchor}
-                  className={`text-[9px] font-extrabold transition-all duration-300 ${
-                    isHovered ? 'fill-[#FF8B2B] scale-105' : 'fill-[#FF8B2B]/80'
-                  }`}
-                >
-                  {v.value}%
-                </text>
-              </g>
-            );
-          })}
-        </svg>
+            </RadarChart>
+          </ResponsiveContainer>
+        </div>
 
         {/* Dynamic Interactive Callout Box */}
         <div className="mt-3 min-h-[55px] w-full text-center px-3 py-2 bg-[#FF9D42]/6 dark:bg-[#FF9D42]/10 border border-[#FF9D42]/12 dark:border-[#FF9D42]/20 rounded-2xl flex flex-col items-center justify-center transition-all">
-          {hoveredRadarIdx !== null ? (
+          {hoveredRadarIdx !== null && radarMetrics[hoveredRadarIdx] ? (
             <div className="animate-fadeIn">
               <span className="text-[11px] font-bold text-[#FF8B2B] block">
-                {vertices[hoveredRadarIdx].label}: {vertices[hoveredRadarIdx].value}%
+                {radarMetrics[hoveredRadarIdx].subject}: {radarMetrics[hoveredRadarIdx].value}%
               </span>
               <span className="text-[10px] text-[#707070] dark:text-[#A0A0A0] mt-0.5 leading-normal max-w-[240px] block font-medium">
-                {hoveredRadarIdx === 0 && "Market strength: Customer segment volume, pricing depth, and urgency of problem solution."}
-                {hoveredRadarIdx === 1 && "Feasibility level: Simplicity of initial technology, MVP speed, and low cloud operational cost."}
-                {hoveredRadarIdx === 2 && "Revenue potential: Premium pricing tiering, advertising monetization multipliers, and SaaS margins."}
-                {hoveredRadarIdx === 3 && "Growth multiplier: SEO search intent frequency, viral referral mechanics, and low CPA acquisition."}
-                {hoveredRadarIdx === 4 && "SEO Opportunity: Relative lack of established corporate search ranking competitors on top search keywords."}
-                {hoveredRadarIdx === 5 && "Product Moat defense: IP barriers, unique integrations, proprietary custom templates, and lock-in loops."}
+                {radarMetrics[hoveredRadarIdx].description}
               </span>
             </div>
           ) : (

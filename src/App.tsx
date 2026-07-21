@@ -121,6 +121,15 @@ export default function App() {
     );
   };
 
+  // Delete idea
+  const handleDeleteIdea = (id: string) => {
+    setIdeas((prev) => prev.filter((idea) => idea.id !== id));
+    setFavoritedIdeaIds((prev) => prev.filter((item) => item !== id));
+    if (selectedIdea?.id === id) {
+      setSelectedIdea(null);
+    }
+  };
+
   // Adjust sliders
   const handleRuleWeightChange = (id: string, weight: number) => {
     setRules((prev) =>
@@ -745,6 +754,7 @@ Be creative, complete, and extremely realistic in filling out every field. Do no
                           onOpenDetails={(idea) => { setSelectedIdea(idea); setActiveTab('idea-details'); }}
                           isFavorited={favoritedIdeaIds.includes(idea.id)}
                           onToggleFavorite={handleToggleFavorite}
+                          onDeleteIdea={handleDeleteIdea}
                         />
                       ))}
                     </div>
@@ -812,6 +822,7 @@ Be creative, complete, and extremely realistic in filling out every field. Do no
                         onOpenDetails={(idea) => { setSelectedIdea(idea); setActiveTab('idea-details'); }}
                         isFavorited={favoritedIdeaIds.includes(idea.id)}
                         onToggleFavorite={handleToggleFavorite}
+                        onDeleteIdea={handleDeleteIdea}
                       />
                     ))}
                   </div>
