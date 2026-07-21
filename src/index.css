@@ -1,0 +1,137 @@
+@import "tailwindcss";
+
+/* Plus Jakarta Sans fonts and letter spacing rules */
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  background-color: #FAF8F5; /* Beautiful premium soft warm white/cream */
+  letter-spacing: -0.01em;
+  color: #1B1B1B;
+}
+
+/* FORCE PLUS JAKARTA SANS GLOBALLY & PREVENT BOLD WEIGHTS */
+*, *::before, *::after {
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+}
+
+/* Force headings, paragraphs, spans, numbers, buttons, table contents, and inputs to be non-bold.
+   Instead of bold (700, 800, etc.), we map them to medium weight (500) or normal weight (400).
+   The user requested: "for heading and text and numbers use jakarta sans and dont make it bold"
+   This is elegantly met by assigning font-weight: 500 for headers and 400 for standard text. */
+h1, h2, h3, h4, h5, h6, th {
+  font-weight: 500 !important;
+  letter-spacing: -0.02em !important;
+}
+
+body, p, span, div, button, input, textarea, a, select, option, label, td {
+  font-weight: 400 !important;
+}
+
+/* Override any Tailwind utility classes that enforce bold styles */
+.font-bold, .font-semibold, .font-extrabold, .font-black, .font-medium {
+  font-weight: 500 !important; /* Elegant, readable medium weight (not chunky/bold) */
+}
+
+.font-normal, .font-light {
+  font-weight: 400 !important;
+}
+
+/* Dot grid background pattern */
+.dot-grid {
+  background-image: radial-gradient(rgba(255, 157, 66, 0.08) 1.5px, transparent 1.5px);
+  background-size: 20px 20px;
+}
+
+/* Premium Liquid glass card layer */
+.liquid-glass-card {
+  background: rgba(255, 255, 255, 0.55) !important;
+  backdrop-filter: blur(20px) saturate(140%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+  box-shadow: 
+    0 12px 34px rgba(0, 0, 0, 0.02), 
+    0 1px 1px rgba(255, 255, 255, 0.8) inset !important;
+}
+
+.liquid-glass-card:hover {
+  background: rgba(255, 255, 255, 0.75) !important;
+  border-color: rgba(255, 255, 255, 0.9) !important;
+  box-shadow: 
+    0 20px 40px rgba(255, 139, 43, 0.06), 
+    0 1px 2px rgba(255, 255, 255, 0.9) inset !important;
+}
+
+/* Topbar and Sidebar distinct styles */
+.liquid-glass-topbar {
+  background: rgba(255, 255, 255, 0.5) !important;
+  backdrop-filter: blur(24px) saturate(140%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.65) !important;
+  box-shadow: 
+    0 10px 30px rgba(0, 0, 0, 0.01), 
+    0 1px 1px rgba(255, 255, 255, 0.8) inset !important;
+}
+
+.liquid-glass-sidebar {
+  background: rgba(255, 255, 255, 0.45) !important;
+  backdrop-filter: blur(24px) saturate(140%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.55) !important;
+  box-shadow: 
+    0 10px 30px rgba(0, 0, 0, 0.01), 
+    0 1px 1px rgba(255, 255, 255, 0.8) inset !important;
+}
+
+/* Custom spring keyframes and animations */
+@keyframes orb-float {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(40px, -60px) scale(1.12);
+  }
+  66% {
+    transform: translate(-30px, 30px) scale(0.92);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
+.animate-orb-1 {
+  animation: orb-float 22s infinite ease-in-out;
+}
+
+.animate-orb-2 {
+  animation: orb-float 28s infinite ease-in-out 3s;
+}
+
+.animate-orb-3 {
+  animation: orb-float 24s infinite ease-in-out 6s;
+}
+
+/* Cubic Bezier spring-like transition utility */
+.spring-transition {
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.spring-hover:hover {
+  transform: translateY(-4px) scale(1.01) !important;
+}
+
+.spring-active:active {
+  transform: scale(0.98) !important;
+}
+
+/* Subtle orange glow on cards */
+.card-orange-glow::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 24px;
+  background: radial-gradient(800px circle at var(--x, 0px) var(--y, 0px), rgba(255, 157, 66, 0.06), transparent 40%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.card-orange-glow:hover::after {
+  opacity: 1;
+}
+
