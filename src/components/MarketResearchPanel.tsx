@@ -1,26 +1,64 @@
-import React, { useState } from 'react';
-import { MOCK_TRENDS_TOPICS, MOCK_SEARCHES } from '../data';
+import React, { useState, useEffect } from 'react';
+import { Idea } from '../types';
 import { Globe, TrendingUp, Search, Sparkles, Compass, BarChart2 } from 'lucide-react';
 
-export default function MarketResearchPanel() {
+interface MarketResearchPanelProps {
+  ideas: Idea[];
+}
+
+export default function MarketResearchPanel({ ideas }: MarketResearchPanelProps) {
   const [keywordQuery, setKeywordQuery] = useState('');
-  const [trends, setTrends] = useState(MOCK_TRENDS_TOPICS);
-  const [searches, setSearches] = useState(MOCK_SEARCHES);
+  const [trends, setTrends] = useState<{ id: string | number; topic: string; volume: string; trend: string; category: string }[]>([]);
+  const [searches, setSearches] = useState<string[]>([]);
+
+  // Dynamically initialize from ideas keywords on load/change
+  useEffect(() => {
+    const extractedTrends: any[] = [];
+    const extractedSearches: string[] = [];
+
+    ideas.forEach((idea, ideaIdx) => {
+      if (idea.keywords && idea.keywords.length > 0) {
+        idea.keywords.forEach((kw, kwIdx) => {
+          extractedTrends.push({
+            id: `extracted-${idea.id}-${kwIdx}`,
+            topic: kw.term,
+            volume: kw.volume || '1.2K',
+            trend: idea.trend || '+12%',
+            category: idea.category || 'SaaS'
+          });
+          extractedSearches.push(kw.term);
+        });
+      } else {
+        // Fallback using title
+        extractedTrends.push({
+          id: `fallback-${idea.id}`,
+          topic: idea.title,
+          volume: '2.5K',
+          trend: idea.trend || '+10%',
+          category: idea.category || 'SaaS'
+        });
+        extractedSearches.push(`how to build ${idea.title.toLowerCase()}`);
+      }
+    });
+
+    setTrends(extractedTrends);
+    setSearches(extractedSearches);
+  }, [ideas]);
 
   const handleKeywordSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (!keywordQuery.trim()) return;
     
-    // Append dynamically
+    // Append dynamically as a pulled signal
     const newTrend = {
-      id: Date.now(),
+      id: `custom-${Date.now()}`,
       topic: keywordQuery,
       volume: `${Math.floor(Math.random() * 50) + 1}K`,
       trend: `+${Math.floor(Math.random() * 150) + 20}%`,
-      category: 'AI / SaaS'
+      category: 'User Search'
     };
-    setTrends([newTrend, ...trends]);
-    setSearches([keywordQuery, ...searches]);
+    setTrends((prev) => [newTrend, ...prev]);
+    setSearches((prev) => [keywordQuery, ...prev]);
     setKeywordQuery('');
   };
 
@@ -74,23 +112,31 @@ export default function MarketResearchPanel() {
           </div>
 
           <div className="space-y-3 flex-1">
-            {trends.map((t) => (
-              <div key={t.id} className="bg-black/5 p-3.5 rounded-2xl flex items-center justify-between border border-transparent hover:border-black/5 transition-colors">
-                <div className="space-y-1">
-                  <span className="text-[11px] font-bold text-[#1B1B1B]">{t.topic}</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[9px] font-bold text-[#999999] uppercase">{t.category}</span>
-                    <span className="text-[9px] text-emerald-600 font-extrabold bg-emerald-50 px-1.5 py-0.5 rounded">
-                      {t.trend}
-                    </span>
+            {trends.length > 0 ? (
+              trends.map((t) => (
+                <div key={t.id} className="bg-black/5 p-3.5 rounded-2xl flex items-center justify-between border border-transparent hover:border-black/5 transition-colors animate-fade-in">
+                  <div className="space-y-1">
+                    <span className="text-[11px] font-bold text-[#1B1B1B]">{t.topic}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[9px] font-bold text-[#999999] uppercase">{t.category}</span>
+                      <span className="text-[9px] text-emerald-600 font-extrabold bg-emerald-50 px-1.5 py-0.5 rounded">
+                        {t.trend}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-xs font-black text-[#1B1B1B]">{t.volume}</span>
+                    <span className="text-[9px] font-bold text-[#999999] block uppercase tracking-wider">Searches/mo</span>
                   </div>
                 </div>
-                <div className="text-right">
-                  <span className="text-xs font-black text-[#1B1B1B]">{t.volume}</span>
-                  <span className="text-[9px] font-bold text-[#999999] block uppercase tracking-wider">Searches/mo</span>
-                </div>
+              ))
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 text-center text-xs font-medium text-[#707070] space-y-2">
+                <Globe className="w-8 h-8 text-[#999999]" />
+                <p>No active signals detected.</p>
+                <p className="text-[10px] text-[#999999]">Analyze a product idea or input keywords above to pull live trending topics.</p>
               </div>
-            ))}
+            )}
           </div>
         </div>
 
@@ -105,12 +151,19 @@ export default function MarketResearchPanel() {
           </div>
 
           <div className="space-y-3">
-            {searches.map((s, idx) => (
-              <div key={idx} className="flex items-center gap-3 p-3 rounded-2xl bg-black/5 text-xs text-[#707070] font-semibold border border-transparent hover:border-black/5 transition-colors">
-                <Search className="w-4 h-4 text-[#FF9D42] flex-shrink-0" />
-                <span className="truncate">{s}</span>
+            {searches.length > 0 ? (
+              searches.map((s, idx) => (
+                <div key={idx} className="flex items-center gap-3 p-3 rounded-2xl bg-black/5 text-xs text-[#707070] font-semibold border border-transparent hover:border-black/5 transition-colors animate-fade-in">
+                  <Search className="w-4 h-4 text-[#FF9D42] flex-shrink-0" />
+                  <span className="truncate">{s}</span>
+                </div>
+              ))
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 text-center text-xs font-medium text-[#707070] space-y-2">
+                <Search className="w-8 h-8 text-[#999999]" />
+                <p>No clusters identified yet.</p>
               </div>
-            ))}
+            )}
           </div>
 
           {/* Seasonality indicator helper */}

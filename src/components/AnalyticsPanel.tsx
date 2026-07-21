@@ -7,51 +7,96 @@ interface AnalyticsPanelProps {
 }
 
 export default function AnalyticsPanel({ ideas }: AnalyticsPanelProps) {
-  // Let's compute some aggregate stats
   const totalCount = ideas.length;
-  const aiCount = ideas.filter(i => i.category === 'AI').length;
-  const saasCount = ideas.filter(i => i.category === 'SaaS').length;
-  const consumerCount = ideas.filter(i => i.category === 'Consumer').length;
+
+  // Find the top-performing idea dynamically
+  const topIdea = totalCount > 0 ? [...ideas].sort((a, b) => b.score - a.score)[0] : null;
+
+  // Calculate real metrics from the ideas state
+  const aiCount = ideas.filter(i => i.category?.toLowerCase().includes('ai')).length;
+  const saasCount = ideas.filter(i => i.category?.toLowerCase().includes('saas')).length;
+  const consumerCount = ideas.filter(i => i.category?.toLowerCase().includes('consumer')).length;
   const otherCount = totalCount - aiCount - saasCount - consumerCount;
 
   const categories = [
-    { name: 'AI', count: aiCount, percentage: totalCount ? Math.round((aiCount / totalCount) * 100) : 40, color: '#FF9D42' },
-    { name: 'SaaS', count: saasCount, percentage: totalCount ? Math.round((saasCount / totalCount) * 100) : 30, color: '#FFB874' },
-    { name: 'Consumer', count: consumerCount, percentage: totalCount ? Math.round((consumerCount / totalCount) * 100) : 20, color: '#FFD6A5' },
-    { name: 'Other', count: otherCount, percentage: totalCount ? Math.round((otherCount / totalCount) * 100) : 10, color: '#F8E8D5' },
+    { name: 'AI', count: aiCount, percentage: totalCount ? Math.round((aiCount / totalCount) * 100) : 0, color: '#FF9D42' },
+    { name: 'SaaS', count: saasCount, percentage: totalCount ? Math.round((saasCount / totalCount) * 100) : 0, color: '#FFB874' },
+    { name: 'Consumer', count: consumerCount, percentage: totalCount ? Math.round((consumerCount / totalCount) * 100) : 0, color: '#FFD6A5' },
+    { name: 'Other', count: otherCount, percentage: totalCount ? Math.round((otherCount / totalCount) * 100) : 0, color: '#F8E8D5' },
   ];
+
+  // Group ideas by category and calculate average scores
+  const categoryScores: Record<string, { total: number; count: number }> = {};
+  ideas.forEach((idea) => {
+    const cat = idea.category || 'Other';
+    if (!categoryScores[cat]) {
+      categoryScores[cat] = { total: 0, count: 0 };
+    }
+    categoryScores[cat].total += idea.score || 0;
+    categoryScores[cat].count += 1;
+  });
+
+  const categoryAverages = Object.entries(categoryScores).map(([name, stat]) => ({
+    label: name,
+    val: Math.round(stat.total / stat.count),
+  })).slice(0, 6); // Max 6 for layout constraints
+
+  // Fallback if no category averages
+  const barData = categoryAverages.length > 0 ? categoryAverages : [
+    { label: 'SaaS', val: 0 },
+    { label: 'AI', val: 0 },
+    { label: 'Consumer', val: 0 },
+  ];
+
+  if (totalCount === 0) {
+    return (
+      <div className="bg-white/65 backdrop-blur-xl border border-white/45 p-12 rounded-3xl text-center space-y-4 max-w-2xl mx-auto">
+        <div className="w-12 h-12 bg-orange-100/50 rounded-full flex items-center justify-center mx-auto">
+          <BarChart3 className="w-6 h-6 text-[#FF8B2B]" />
+        </div>
+        <div className="space-y-1">
+          <h4 className="text-sm font-bold text-[#1B1B1B]">No Analytics Signals Pulled Yet</h4>
+          <p className="text-xs text-[#707070] font-medium leading-relaxed">
+            Upload and analyze your product or SaaS ideas in the Uploads tab. Our AI evaluation engine will compute opportunity indexes, feasibility matrix scores, and plot real-time trends here.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       
       {/* Top Smart Recommendation Banner */}
-      <div className="bg-gradient-to-r from-orange-50 to-[#FFD6A5]/10 border border-orange-100 rounded-3xl p-6 space-y-3">
-        <h3 className="text-xs font-bold text-[#FF8B2B] uppercase tracking-wider flex items-center gap-1.5">
-          <Sparkles className="w-4 h-4 text-[#FF9D42]" />
-          Portfolio AI Recommendation
-        </h3>
-        <p className="text-sm text-[#1B1B1B] font-bold leading-relaxed">
-          Prioritize <span className="text-[#FF8B2B] font-black underline decoration-2">AI-Powered Contract Review</span> — It scores in the top 5% for market demand and product moat, with rising search velocity (+18% MoM) and low execution risk. Build a targeted GTM strategy around small boutique legal teams.
-        </p>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-3 text-xs font-semibold text-[#707070]">
-          <div className="space-y-1">
-            <span className="text-[10px] text-[#999999] uppercase block font-bold">Revenue Potential</span>
-            <span className="text-[#1B1B1B] font-extrabold">$120k ARR Year 1</span>
-          </div>
-          <div className="space-y-1">
-            <span className="text-[10px] text-[#999999] uppercase block font-bold">Primary Channel</span>
-            <span className="text-[#1B1B1B] font-extrabold">B2B Outbound / SEO</span>
-          </div>
-          <div className="space-y-1">
-            <span className="text-[10px] text-[#999999] uppercase block font-bold">Competition</span>
-            <span className="text-emerald-600 font-extrabold">Low / Concentrated</span>
-          </div>
-          <div className="space-y-1">
-            <span className="text-[10px] text-[#999999] uppercase block font-bold">Next Milestone</span>
-            <span className="text-[#1B1B1B] font-extrabold">Publish Landing Page MVP</span>
+      {topIdea && (
+        <div className="bg-gradient-to-r from-orange-50 to-[#FFD6A5]/10 border border-orange-100 rounded-3xl p-6 space-y-3 animate-fade-in">
+          <h3 className="text-xs font-bold text-[#FF8B2B] uppercase tracking-wider flex items-center gap-1.5">
+            <Sparkles className="w-4 h-4 text-[#FF9D42]" />
+            Portfolio AI Recommendation
+          </h3>
+          <p className="text-sm text-[#1B1B1B] font-bold leading-relaxed">
+            Prioritize <span className="text-[#FF8B2B] font-black underline decoration-2">{topIdea.title}</span> — It is currently your top-performing opportunity, scoring <span className="font-extrabold">{topIdea.score}/100</span> based on active evaluation criteria weights. It estimates a build time of <span className="font-semibold">{topIdea.timeToBuild}</span> and estimated budget of <span className="font-semibold">{topIdea.estimatedCost}</span>.
+          </p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-3 text-xs font-semibold text-[#707070]">
+            <div className="space-y-1">
+              <span className="text-[10px] text-[#999999] uppercase block font-bold">Business Model</span>
+              <span className="text-[#1B1B1B] font-extrabold truncate block">{topIdea.businessModel || 'SaaS Subscription'}</span>
+            </div>
+            <div className="space-y-1">
+              <span className="text-[10px] text-[#999999] uppercase block font-bold">Category Class</span>
+              <span className="text-[#1B1B1B] font-extrabold">{topIdea.category}</span>
+            </div>
+            <div className="space-y-1">
+              <span className="text-[10px] text-[#999999] uppercase block font-bold">Competition</span>
+              <span className="text-emerald-600 font-extrabold">{topIdea.competition}</span>
+            </div>
+            <div className="space-y-1">
+              <span className="text-[10px] text-[#999999] uppercase block font-bold">Investor Confidence</span>
+              <span className="text-[#1B1B1B] font-extrabold">{topIdea.investorScore || 80}%</span>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Analytics Charts Bento Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -62,7 +107,7 @@ export default function AnalyticsPanel({ ideas }: AnalyticsPanelProps) {
             <span className="text-[10px] font-bold text-[#999999] uppercase tracking-wider block">Portfolio Density</span>
             <h4 className="text-sm font-bold text-[#1B1B1B] flex items-center gap-1.5">
               <PieChart className="w-4 h-4 text-[#FF9D42]" />
-              Category distribution
+              Category Distribution
             </h4>
           </div>
 
@@ -71,31 +116,30 @@ export default function AnalyticsPanel({ ideas }: AnalyticsPanelProps) {
             <div className="relative w-36 h-36 flex items-center justify-center">
               <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
                 <circle cx="50" cy="50" r="40" fill="transparent" stroke="rgba(0,0,0,0.03)" strokeWidth="12" />
-                {/* 
-                  Category 1 (AI): 40% -> strokeDashoffset: 0 to 2 * PI * 40 * 0.4
-                  Category 2 (SaaS): 30%
-                  Category 3 (Consumer): 20%
-                  Category 4 (Other): 10%
-                */}
-                <circle cx="50" cy="50" r="40" fill="transparent" stroke="#FF9D42" strokeWidth="12"
-                  strokeDasharray={2 * Math.PI * 40}
-                  strokeDashoffset={2 * Math.PI * 40 * (1 - 0.4)}
-                />
-                <circle cx="50" cy="50" r="40" fill="transparent" stroke="#FFB874" strokeWidth="12"
-                  strokeDasharray={2 * Math.PI * 40}
-                  strokeDashoffset={2 * Math.PI * 40 * (1 - 0.3)}
-                  className="transform rotate-[144deg] origin-center"
-                />
-                <circle cx="50" cy="50" r="40" fill="transparent" stroke="#FFD6A5" strokeWidth="12"
-                  strokeDasharray={2 * Math.PI * 40}
-                  strokeDashoffset={2 * Math.PI * 40 * (1 - 0.2)}
-                  className="transform rotate-[252deg] origin-center"
-                />
-                <circle cx="50" cy="50" r="40" fill="transparent" stroke="#F8E8D5" strokeWidth="12"
-                  strokeDasharray={2 * Math.PI * 40}
-                  strokeDashoffset={2 * Math.PI * 40 * (1 - 0.1)}
-                  className="transform rotate-[324deg] origin-center"
-                />
+                {totalCount > 0 && (() => {
+                  let cumOffset = 0;
+                  return categories.map((c, i) => {
+                    const strokeDash = 2 * Math.PI * 40;
+                    const strokeDashoffset = strokeDash * (1 - (c.percentage / 100));
+                    const rotate = (cumOffset / 100) * 360;
+                    cumOffset += c.percentage;
+                    return (
+                      <circle
+                        key={i}
+                        cx="50"
+                        cy="50"
+                        r="40"
+                        fill="transparent"
+                        stroke={c.color}
+                        strokeWidth="12"
+                        strokeDasharray={strokeDash}
+                        strokeDashoffset={strokeDashoffset}
+                        transform={`rotate(${rotate} 50 50)`}
+                        className="origin-center transition-all duration-500"
+                      />
+                    );
+                  });
+                })()}
               </svg>
               <div className="absolute text-center">
                 <span className="text-xl font-extrabold text-[#1B1B1B]">{totalCount}</span>
@@ -124,25 +168,18 @@ export default function AnalyticsPanel({ ideas }: AnalyticsPanelProps) {
             <span className="text-[10px] font-bold text-[#999999] uppercase tracking-wider block">Composite Potential</span>
             <h4 className="text-sm font-bold text-[#1B1B1B] flex items-center gap-1.5">
               <BarChart3 className="w-4 h-4 text-emerald-500" />
-              Opportunity by category
+              Opportunity by Category
             </h4>
           </div>
 
           {/* Vertical Bar Chart custom SVG rendering */}
           <div className="h-36 w-full flex items-end justify-between px-4 pt-2">
-            {[
-              { label: 'SaaS', val: 68 },
-              { label: 'AI', val: 89 },
-              { label: 'Consumer', val: 70 },
-              { label: 'Design', val: 81 },
-              { label: 'LegalTech', val: 90 },
-              { label: 'Other', val: 55 },
-            ].map((bar, i) => (
-              <div key={i} className="flex flex-col items-center gap-2 flex-1 max-w-[40px]">
+            {barData.map((bar, i) => (
+              <div key={i} className="flex flex-col items-center gap-2 flex-1 max-w-[50px]">
                 <div className="w-full bg-black/5 rounded-t-xl h-24 relative overflow-hidden flex items-end justify-center">
                   <div
                     className="w-full bg-gradient-to-t from-[#FF9D42] to-[#FFD6A5] rounded-t-xl hover:brightness-105 transition-all duration-500 relative"
-                    style={{ height: `${bar.val}%` }}
+                    style={{ height: `${bar.val || 5}%` }}
                   >
                     {/* Tiny visual score badge on hover */}
                     <div className="absolute top-1 left-1/2 -translate-x-1/2 text-[8px] font-bold text-white leading-none">
@@ -170,7 +207,7 @@ export default function AnalyticsPanel({ ideas }: AnalyticsPanelProps) {
           </h4>
         </div>
 
-        {/* 2D Matrix plotting mock points */}
+        {/* 2D Matrix plotting actual points */}
         <div className="h-60 w-full bg-black/5 rounded-3xl relative border border-black-[0.03] overflow-hidden p-6">
           {/* Axis Labels */}
           <div className="absolute left-3 top-1/2 -translate-y-1/2 [writing-mode:vertical-lr] rotate-180 text-[10px] font-bold text-[#999999] uppercase tracking-widest">

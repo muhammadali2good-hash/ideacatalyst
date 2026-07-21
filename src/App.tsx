@@ -13,6 +13,7 @@ import UploadBento from './components/UploadBento';
 import MarketResearchPanel from './components/MarketResearchPanel';
 import AnalyticsPanel from './components/AnalyticsPanel';
 import ReportsPanel from './components/ReportsPanel';
+import SettingsPanel from './components/SettingsPanel';
 
 import { Sparkles, ArrowRight, TrendingUp, SlidersHorizontal, Search, RefreshCw, Layers } from 'lucide-react';
 
@@ -119,6 +120,32 @@ export default function App() {
   // Reset rules
   const handleResetRules = () => {
     setRules(INITIAL_RULES);
+  };
+
+  // Workspace configuration state
+  const [workspaceName, setWorkspaceName] = useState<string>(() => {
+    return localStorage.getItem('settings_workspace_name') || 'Alex';
+  });
+
+  // Keep workspace name in sync on change
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setWorkspaceName(localStorage.getItem('settings_workspace_name') || 'Alex');
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  const handleClearBacklog = () => {
+    setIdeas([]);
+    setFavoritedIdeaIds([]);
+    localStorage.removeItem('idea_analyzer_ideas');
+    localStorage.removeItem('idea_analyzer_favorites');
+  };
+
+  const handleLoadSampleData = () => {
+    setIdeas(INITIAL_IDEAS);
+    localStorage.setItem('idea_analyzer_ideas', JSON.stringify(INITIAL_IDEAS));
   };
 
   // Apply custom presets
@@ -616,7 +643,7 @@ Be creative, complete, and extremely realistic in filling out every field. Do no
             {/* TAB: MARKET RESEARCH */}
             {activeTab === 'research' && (
               <div className="space-y-6">
-                <MarketResearchPanel />
+                <MarketResearchPanel ideas={ideas} />
               </div>
             )}
 
@@ -624,6 +651,17 @@ Be creative, complete, and extremely realistic in filling out every field. Do no
             {activeTab === 'reports' && (
               <div className="space-y-6">
                 <ReportsPanel ideas={ideas} />
+              </div>
+            )}
+
+            {/* TAB: SETTINGS */}
+            {activeTab === 'settings' && (
+              <div className="space-y-6 animate-fade-in">
+                <SettingsPanel
+                  onClearBacklog={handleClearBacklog}
+                  onLoadSampleData={handleLoadSampleData}
+                  ideasCount={ideas.length}
+                />
               </div>
             )}
 

@@ -1,5 +1,5 @@
 {
-  "name": "IdeaAnalyzer AI",
+  "name": "IdeaCatalyst",
   "description": "Premium AI Idea Analysis Platform built around Bento grid layouts, Liquid Glass surfaces, customizable evaluation criteria, and robust market reports.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

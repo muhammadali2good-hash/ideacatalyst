@@ -12,6 +12,29 @@ export default function ReportsPanel({ ideas }: ReportsPanelProps) {
 
   const selectedIdea = ideas.find(i => i.id === selectedIdeaId) || ideas[0];
 
+  // Update selected idea if list changes
+  React.useEffect(() => {
+    if (ideas.length > 0 && !selectedIdeaId) {
+      setSelectedIdeaId(ideas[0].id);
+    }
+  }, [ideas, selectedIdeaId]);
+
+  if (ideas.length === 0) {
+    return (
+      <div className="bg-white/65 backdrop-blur-xl border border-white/45 p-12 rounded-3xl text-center space-y-4 max-w-2xl mx-auto">
+        <div className="w-12 h-12 bg-orange-100/50 rounded-full flex items-center justify-center mx-auto">
+          <FileText className="w-6 h-6 text-[#FF8B2B]" />
+        </div>
+        <div className="space-y-1">
+          <h4 className="text-sm font-bold text-[#1B1B1B]">No AI Reports Available</h4>
+          <p className="text-xs text-[#707070] font-medium leading-relaxed">
+            Please analyze at least one product or SaaS idea in the Uploads tab first. Once analyzed, you can generate Investor Pitch Decks, Lean Canvas Matrices, PRDs, and Go-To-Market plans here.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   const reportTemplates = [
     { id: 'pitch', title: 'Investor Pitch Deck Summary', desc: 'A standard high-impact 10-slide VC deck format outlining problem, solution, market size, and next milestones.', category: 'Investment' },
     { id: 'canvas', title: 'Lean Canvas Matrix', desc: 'Comprehensive fast-validation framework containing unfair advantages, key channels, and cost models.', category: 'Product Strategy' },
