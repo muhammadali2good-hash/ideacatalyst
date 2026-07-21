@@ -47,6 +47,16 @@ export default function App() {
 
   // Save to persistent local storage ("chrome db storage") on change
   useEffect(() => {
+    // Sync initial theme
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, []);
+
+  useEffect(() => {
     try {
       localStorage.setItem('idea_analyzer_ideas', JSON.stringify(ideas));
     } catch (e) {

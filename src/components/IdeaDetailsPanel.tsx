@@ -28,6 +28,8 @@ interface IdeaDetailsPanelProps {
 export default function IdeaDetailsPanel({ idea, onClose }: IdeaDetailsPanelProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'canvas' | 'market' | 'execution' | 'revenue-projection'>('overview');
   const [revenueTerm, setRevenueTerm] = useState<'monthly' | 'annual'>('monthly');
+  const [hoveredRadarIdx, setHoveredRadarIdx] = useState<number | null>(null);
+  const [hoveredRevenuePoint, setHoveredRevenuePoint] = useState<any>(null);
 
   if (!idea) {
     return (
@@ -99,11 +101,11 @@ export default function IdeaDetailsPanel({ idea, onClose }: IdeaDetailsPanelProp
     const scorePathPoints = vertices.map(v => `${v.scoreX},${v.scoreY}`).join(' ');
 
     return (
-      <div className="flex flex-col items-center justify-center p-4 bg-white/50 backdrop-blur-md rounded-3xl border border-black/5 shadow-sm">
+      <div className="flex flex-col items-center justify-center p-4 bg-white/50 dark:bg-[#1A1817]/40 backdrop-blur-md rounded-3xl border border-black/5 dark:border-white/5 shadow-sm w-full transition-colors">
         <span className="text-[11px] font-bold text-[#FF8B2B] uppercase tracking-wider mb-2">
           Idea Strength Matrix
         </span>
-        <svg className="w-80 h-80" viewBox="0 0 320 320">
+        <svg className="w-full max-w-[280px] h-auto aspect-square animate-fadeIn" viewBox="0 0 320 320">
           {/* Hexagonal grid backgrounds */}
           {gridLevels.map((level, gridIdx) => {
             const levelPoints = vertices.map(v => {
@@ -115,7 +117,7 @@ export default function IdeaDetailsPanel({ idea, onClose }: IdeaDetailsPanelProp
                 key={gridIdx}
                 points={levelPoints}
                 fill="none"
-                className="stroke-black/5"
+                className="stroke-black/5 dark:stroke-white/5"
                 strokeWidth="1"
                 strokeDasharray={gridIdx === 3 ? 'none' : '3,3'}
               />
@@ -130,14 +132,16 @@ export default function IdeaDetailsPanel({ idea, onClose }: IdeaDetailsPanelProp
               y1={cy}
               x2={v.x}
               y2={v.y}
-              className="stroke-black/5"
-              strokeWidth="1.2"
+              className={`transition-colors duration-300 ${
+                hoveredRadarIdx === i ? 'stroke-[#FF8B2B]' : 'stroke-black/5 dark:stroke-white/5'
+              }`}
+              strokeWidth={hoveredRadarIdx === i ? '2' : '1.2'}
             />
           ))}
 
           {/* Grid Level Labels */}
-          <text x={cx + 5} y={cy - r * 0.5 + 4} className="text-[8px] fill-[#999999] font-medium">50%</text>
-          <text x={cx + 5} y={cy - r + 4} className="text-[8px] fill-[#999999] font-medium">100%</text>
+          <text x={cx + 5} y={cy - r * 0.5 + 4} className="text-[8px] fill-[#999999] dark:fill-stone-500 font-medium">50%</text>
+          <text x={cx + 5} y={cy - r + 4} className="text-[8px] fill-[#999999] dark:fill-stone-500 font-medium">100%</text>
 
           {/* Value Area Polygon */}
           <polygon
@@ -150,19 +154,24 @@ export default function IdeaDetailsPanel({ idea, onClose }: IdeaDetailsPanelProp
 
           {/* Glowing Vertex Dots for Actual Scores */}
           {vertices.map((v, i) => (
-            <g key={i}>
+            <g
+              key={i}
+              className="cursor-pointer"
+              onMouseEnter={() => setHoveredRadarIdx(i)}
+              onMouseLeave={() => setHoveredRadarIdx(null)}
+            >
               <circle
                 cx={v.scoreX}
                 cy={v.scoreY}
-                r="4.5"
-                className="fill-[#FF8B2B] stroke-white"
+                r={hoveredRadarIdx === i ? '7' : '4.5'}
+                className="fill-[#FF8B2B] stroke-white dark:stroke-[#121110] transition-all duration-300"
                 strokeWidth="1.5"
               />
               <circle
                 cx={v.scoreX}
                 cy={v.scoreY}
-                r="9"
-                className="fill-none stroke-[#FF8B2B]/20"
+                r={hoveredRadarIdx === i ? '12' : '9'}
+                className="fill-none stroke-[#FF8B2B]/20 transition-all duration-300"
                 strokeWidth="1"
               />
             </g>
@@ -175,13 +184,22 @@ export default function IdeaDetailsPanel({ idea, onClose }: IdeaDetailsPanelProp
             if (v.labelX > cx + 10) textAnchor = "start";
             if (v.labelX < cx - 10) textAnchor = "end";
 
+            const isHovered = hoveredRadarIdx === i;
+
             return (
-              <g key={i}>
+              <g
+                key={i}
+                className="cursor-pointer"
+                onMouseEnter={() => setHoveredRadarIdx(i)}
+                onMouseLeave={() => setHoveredRadarIdx(null)}
+              >
                 <text
                   x={v.labelX}
                   y={v.labelY}
                   textAnchor={textAnchor}
-                  className="text-[10px] fill-[#1B1B1B] font-bold"
+                  className={`text-[10px] font-bold transition-all duration-300 ${
+                    isHovered ? 'fill-[#FF8B2B]' : 'fill-[#1B1B1B] dark:fill-[#FAF8F5]'
+                  }`}
                 >
                   {v.label}
                 </text>
@@ -189,7 +207,9 @@ export default function IdeaDetailsPanel({ idea, onClose }: IdeaDetailsPanelProp
                   x={v.labelX}
                   y={v.labelY + 11}
                   textAnchor={textAnchor}
-                  className="text-[9px] fill-[#FF8B2B] font-extrabold"
+                  className={`text-[9px] font-extrabold transition-all duration-300 ${
+                    isHovered ? 'fill-[#FF8B2B] scale-105' : 'fill-[#FF8B2B]/80'
+                  }`}
                 >
                   {v.value}%
                 </text>
@@ -197,7 +217,31 @@ export default function IdeaDetailsPanel({ idea, onClose }: IdeaDetailsPanelProp
             );
           })}
         </svg>
-        <p className="text-[10px] text-[#999999] font-medium text-center max-w-xs mt-2">
+
+        {/* Dynamic Interactive Callout Box */}
+        <div className="mt-3 min-h-[55px] w-full text-center px-3 py-2 bg-[#FF9D42]/6 dark:bg-[#FF9D42]/10 border border-[#FF9D42]/12 dark:border-[#FF9D42]/20 rounded-2xl flex flex-col items-center justify-center transition-all">
+          {hoveredRadarIdx !== null ? (
+            <div className="animate-fadeIn">
+              <span className="text-[11px] font-bold text-[#FF8B2B] block">
+                {vertices[hoveredRadarIdx].label}: {vertices[hoveredRadarIdx].value}%
+              </span>
+              <span className="text-[10px] text-[#707070] dark:text-[#A0A0A0] mt-0.5 leading-normal max-w-[240px] block font-medium">
+                {hoveredRadarIdx === 0 && "Market strength: Customer segment volume, pricing depth, and urgency of problem solution."}
+                {hoveredRadarIdx === 1 && "Feasibility level: Simplicity of initial technology, MVP speed, and low cloud operational cost."}
+                {hoveredRadarIdx === 2 && "Revenue potential: Premium pricing tiering, advertising monetization multipliers, and SaaS margins."}
+                {hoveredRadarIdx === 3 && "Growth multiplier: SEO search intent frequency, viral referral mechanics, and low CPA acquisition."}
+                {hoveredRadarIdx === 4 && "SEO Opportunity: Relative lack of established corporate search ranking competitors on top search keywords."}
+                {hoveredRadarIdx === 5 && "Product Moat defense: IP barriers, unique integrations, proprietary custom templates, and lock-in loops."}
+              </span>
+            </div>
+          ) : (
+            <span className="text-[10px] text-[#999999] dark:text-stone-500 italic font-medium">
+              Hover over any vertex or dimension label to view deep metrics.
+            </span>
+          )}
+        </div>
+
+        <p className="text-[9px] text-[#999999] dark:text-stone-500 font-medium text-center max-w-xs mt-2">
           An asymmetrical polygon highlights high-power advantages, while sharp inward indentations identify immediate vulnerabilities.
         </p>
       </div>
@@ -233,25 +277,25 @@ export default function IdeaDetailsPanel({ idea, onClose }: IdeaDetailsPanelProp
     });
 
     return (
-      <div className="bg-white/50 backdrop-blur-md rounded-3xl border border-black/5 p-5 shadow-sm space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-black/5 pb-3">
+      <div className="bg-white/50 dark:bg-[#1A1817]/40 backdrop-blur-md rounded-3xl border border-black/5 dark:border-white/5 p-5 shadow-sm space-y-4 w-full transition-colors">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-black/5 dark:border-white/5 pb-3">
           <div>
-            <h4 className="text-sm font-bold text-[#1B1B1B] flex items-center gap-1.5">
+            <h4 className="text-sm font-bold text-[#1B1B1B] dark:text-[#FAF8F5] flex items-center gap-1.5">
               <MoneyIcon className="w-4 h-4 text-emerald-600" />
               Dynamic Ads Revenue Curve
             </h4>
-            <p className="text-[10px] text-[#707070] font-medium">
-              Revenue computed based on Page RPM of <span className="font-bold text-[#1B1B1B]">${pageRPM}.00</span> for {idea.potential} Potential niches
+            <p className="text-[10px] text-[#707070] dark:text-[#A0A0A0] font-medium">
+              Revenue computed based on Page RPM of <span className="font-bold text-[#1B1B1B] dark:text-[#FAF8F5]">${pageRPM}.00</span> for {idea.potential} Potential niches
             </p>
           </div>
 
           {/* Toggle buttons */}
-          <div className="flex items-center gap-1 bg-black/5 p-1 rounded-xl self-start sm:self-auto">
+          <div className="flex items-center gap-1 bg-black/5 dark:bg-white/5 p-1 rounded-xl self-start sm:self-auto">
             <button
               id="revenue-monthly-toggle"
               onClick={() => setRevenueTerm('monthly')}
-              className={`px-2.5 py-1 text-[10px] font-bold rounded-lg transition-colors ${
-                revenueTerm === 'monthly' ? 'bg-white text-[#1B1B1B] shadow-sm' : 'text-[#707070]'
+              className={`px-2.5 py-1 text-[10px] font-bold rounded-lg transition-colors cursor-pointer ${
+                revenueTerm === 'monthly' ? 'bg-white dark:bg-[#2C2A29] text-[#1B1B1B] dark:text-white shadow-sm' : 'text-[#707070] dark:text-stone-400'
               }`}
             >
               Monthly
@@ -259,13 +303,31 @@ export default function IdeaDetailsPanel({ idea, onClose }: IdeaDetailsPanelProp
             <button
               id="revenue-annual-toggle"
               onClick={() => setRevenueTerm('annual')}
-              className={`px-2.5 py-1 text-[10px] font-bold rounded-lg transition-colors ${
-                revenueTerm === 'annual' ? 'bg-white text-[#1B1B1B] shadow-sm' : 'text-[#707070]'
+              className={`px-2.5 py-1 text-[10px] font-bold rounded-lg transition-colors cursor-pointer ${
+                revenueTerm === 'annual' ? 'bg-white dark:bg-[#2C2A29] text-[#1B1B1B] dark:text-white shadow-sm' : 'text-[#707070] dark:text-stone-400'
               }`}
             >
               Annual
             </button>
           </div>
+        </div>
+
+        {/* Dynamic Interactive Tooltip Panel */}
+        <div className="min-h-[40px] px-4 py-2.5 bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/15 rounded-2xl flex items-center justify-between transition-all">
+          {hoveredRevenuePoint ? (
+            <div className="flex items-center justify-between w-full animate-fadeIn">
+              <span className="text-[11px] font-bold text-[#1B1B1B] dark:text-[#FAF8F5]">
+                📊 Tier: <span className="text-emerald-600 dark:text-emerald-400 font-extrabold">{hoveredRevenuePoint.tier.toLocaleString()}</span> monthly visitors
+              </span>
+              <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                Projected: <span className="font-extrabold">${Math.round(hoveredRevenuePoint.rev).toLocaleString()}</span>/{revenueTerm === 'monthly' ? 'mo' : 'yr'}
+              </span>
+            </div>
+          ) : (
+            <span className="text-[10px] text-[#999999] dark:text-stone-500 italic font-medium mx-auto">
+              Hover over any data node on the curve to test visitor-to-revenue ratios.
+            </span>
+          )}
         </div>
 
         {/* The SVG canvas chart */}
@@ -282,14 +344,14 @@ export default function IdeaDetailsPanel({ idea, onClose }: IdeaDetailsPanelProp
                     y1={y}
                     x2={width - padding.right}
                     y2={y}
-                    className="stroke-black/[0.04]"
+                    className="stroke-black/[0.04] dark:stroke-white/[0.04]"
                     strokeWidth="1"
                   />
                   <text
                     x={padding.left - 8}
                     y={y + 3}
                     textAnchor="end"
-                    className="text-[9px] fill-[#999999] font-semibold"
+                    className="text-[9px] fill-[#999999] dark:fill-stone-500 font-semibold"
                   >
                     ${labelVal.toLocaleString()}
                   </text>
@@ -304,7 +366,7 @@ export default function IdeaDetailsPanel({ idea, onClose }: IdeaDetailsPanelProp
                 x={p.x}
                 y={height - 10}
                 textAnchor="middle"
-                className="text-[9px] fill-[#999999] font-semibold"
+                className="text-[9px] fill-[#999999] dark:fill-stone-500 font-semibold"
               >
                 {p.tier >= 100000 ? `${p.tier / 1000}k` : `${p.tier / 1000}k`}
               </text>
@@ -327,17 +389,36 @@ export default function IdeaDetailsPanel({ idea, onClose }: IdeaDetailsPanelProp
               className="transition-all duration-500"
             />
 
-            {/* Nodes on path */}
-            {points.map((p, idx) => (
-              <circle
-                key={idx}
-                cx={p.x}
-                cy={p.y}
-                r="4"
-                className="fill-white stroke-emerald-500"
-                strokeWidth="2"
+            {/* Vertical hover line guideline */}
+            {hoveredRevenuePoint && (
+              <line
+                x1={hoveredRevenuePoint.x}
+                y1={padding.top}
+                x2={hoveredRevenuePoint.x}
+                y2={height - padding.bottom}
+                stroke="#22C55E"
+                strokeWidth="1"
+                strokeDasharray="3,3"
+                className="animate-fadeIn"
               />
-            ))}
+            )}
+
+            {/* Nodes on path */}
+            {points.map((p, idx) => {
+              const isHovered = hoveredRevenuePoint && hoveredRevenuePoint.tier === p.tier;
+              return (
+                <circle
+                  key={idx}
+                  cx={p.x}
+                  cy={p.y}
+                  r={isHovered ? '6' : '4'}
+                  className={`transition-all duration-300 ${
+                    isHovered ? 'fill-emerald-500 stroke-white dark:stroke-[#121110]' : 'fill-white dark:fill-[#1E1C1B] stroke-emerald-500'
+                  }`}
+                  strokeWidth="2"
+                />
+              );
+            })}
 
             {/* TARGET ZONE INDICATOR AND CALLOUT BOX */}
             <g className="animate-pulse">
@@ -396,6 +477,20 @@ export default function IdeaDetailsPanel({ idea, onClose }: IdeaDetailsPanelProp
             >
               at {targetMonthlyVisitors.toLocaleString()} visitors
             </text>
+
+            {/* Invisible large hover triggers to make interaction butter smooth */}
+            {points.map((p, idx) => (
+              <circle
+                key={`trigger-${idx}`}
+                cx={p.x}
+                cy={p.y}
+                r="16"
+                fill="transparent"
+                className="cursor-pointer"
+                onMouseEnter={() => setHoveredRevenuePoint(p)}
+                onMouseLeave={() => setHoveredRevenuePoint(null)}
+              />
+            ))}
           </svg>
         </div>
 

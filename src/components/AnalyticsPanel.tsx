@@ -8,6 +8,9 @@ interface AnalyticsPanelProps {
 
 export default function AnalyticsPanel({ ideas }: AnalyticsPanelProps) {
   const totalCount = ideas.length;
+  const [hoveredCategoryIdx, setHoveredCategoryIdx] = React.useState<number | null>(null);
+  const [hoveredBarIdx, setHoveredBarIdx] = React.useState<number | null>(null);
+  const [hoveredHeatmapId, setHoveredHeatmapId] = React.useState<string | null>(null);
 
   // Find the top-performing idea dynamically
   const topIdea = totalCount > 0 ? [...ideas].sort((a, b) => b.score - a.score)[0] : null;
@@ -123,6 +126,8 @@ export default function AnalyticsPanel({ ideas }: AnalyticsPanelProps) {
                     const strokeDashoffset = strokeDash * (1 - (c.percentage / 100));
                     const rotate = (cumOffset / 100) * 360;
                     cumOffset += c.percentage;
+                    const isHovered = hoveredCategoryIdx === i;
+                    const anyHovered = hoveredCategoryIdx !== null;
                     return (
                       <circle
                         key={i}
@@ -131,33 +136,63 @@ export default function AnalyticsPanel({ ideas }: AnalyticsPanelProps) {
                         r="40"
                         fill="transparent"
                         stroke={c.color}
-                        strokeWidth="12"
+                        strokeWidth={isHovered ? "15" : "12"}
                         strokeDasharray={strokeDash}
                         strokeDashoffset={strokeDashoffset}
                         transform={`rotate(${rotate} 50 50)`}
-                        className="origin-center transition-all duration-500"
+                        className="origin-center transition-all duration-300 cursor-pointer"
+                        style={{
+                          opacity: anyHovered ? (isHovered ? 1.0 : 0.4) : 1.0,
+                        }}
+                        onMouseEnter={() => setHoveredCategoryIdx(i)}
+                        onMouseLeave={() => setHoveredCategoryIdx(null)}
                       />
                     );
                   });
                 })()}
               </svg>
-              <div className="absolute text-center">
-                <span className="text-xl font-extrabold text-[#1B1B1B]">{totalCount}</span>
-                <span className="text-[9px] font-bold text-[#999999] uppercase tracking-wider block">Ideas</span>
+              <div className="absolute text-center px-2 pointer-events-none">
+                {hoveredCategoryIdx !== null ? (
+                  <div className="animate-fadeIn">
+                    <span className="text-lg font-extrabold text-[#1B1B1B] dark:text-[#FAF8F5] block leading-none">
+                      {categories[hoveredCategoryIdx].count}
+                    </span>
+                    <span className="text-[8px] font-black text-[#FF8B2B] uppercase tracking-wider block mt-1">
+                      {categories[hoveredCategoryIdx].name} ({categories[hoveredCategoryIdx].percentage}%)
+                    </span>
+                  </div>
+                ) : (
+                  <div>
+                    <span className="text-xl font-extrabold text-[#1B1B1B] dark:text-[#FAF8F5] block leading-none">{totalCount}</span>
+                    <span className="text-[9px] font-bold text-[#999999] dark:text-stone-500 uppercase tracking-wider block mt-1">Ideas</span>
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Legends list */}
             <div className="space-y-2 flex-1 w-full">
-              {categories.map((c, i) => (
-                <div key={i} className="flex items-center justify-between text-xs font-semibold text-[#707070]">
-                  <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-md" style={{ backgroundColor: c.color }} />
-                    <span>{c.name}</span>
+              {categories.map((c, i) => {
+                const isHovered = hoveredCategoryIdx === i;
+                return (
+                  <div
+                    key={i}
+                    className={`flex items-center justify-between text-xs font-semibold text-[#707070] dark:text-stone-400 p-1 rounded-lg transition-all cursor-pointer ${
+                      isHovered ? 'bg-[#FF9D42]/8 scale-[1.02]' : ''
+                    }`}
+                    onMouseEnter={() => setHoveredCategoryIdx(i)}
+                    onMouseLeave={() => setHoveredCategoryIdx(null)}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="w-3 h-3 rounded-md transition-transform" style={{ backgroundColor: c.color, transform: isHovered ? 'scale(1.2)' : 'none' }} />
+                      <span className={isHovered ? 'text-[#1B1B1B] dark:text-white font-extrabold' : ''}>{c.name}</span>
+                    </div>
+                    <span className={`transition-all ${isHovered ? 'text-[#FF8B2B] font-black' : 'text-[#1B1B1B] dark:text-[#FAF8F5]'}`}>
+                      {c.percentage}% ({c.count})
+                    </span>
                   </div>
-                  <span className="text-[#1B1B1B] font-extrabold">{c.percentage}% ({c.count})</span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
@@ -166,32 +201,55 @@ export default function AnalyticsPanel({ ideas }: AnalyticsPanelProps) {
         <div className="liquid-glass-card spring-transition rounded-3xl p-6 space-y-4 flex flex-col justify-between">
           <div>
             <span className="text-[10px] font-bold text-[#999999] uppercase tracking-wider block">Composite Potential</span>
-            <h4 className="text-sm font-bold text-[#1B1B1B] flex items-center gap-1.5">
+            <h4 className="text-sm font-bold text-[#1B1B1B] dark:text-[#FAF8F5] flex items-center gap-1.5">
               <BarChart3 className="w-4 h-4 text-emerald-500" />
               Opportunity by Category
             </h4>
           </div>
 
           {/* Vertical Bar Chart custom SVG rendering */}
-          <div className="h-36 w-full flex items-end justify-between px-4 pt-2">
-            {barData.map((bar, i) => (
-              <div key={i} className="flex flex-col items-center gap-2 flex-1 max-w-[50px]">
-                <div className="w-full bg-black/5 rounded-t-xl h-24 relative overflow-hidden flex items-end justify-center">
-                  <div
-                    className="w-full bg-gradient-to-t from-[#FF9D42] to-[#FFD6A5] rounded-t-xl hover:brightness-105 transition-all duration-500 relative"
-                    style={{ height: `${bar.val || 5}%` }}
-                  >
-                    {/* Tiny visual score badge on hover */}
-                    <div className="absolute top-1 left-1/2 -translate-x-1/2 text-[8px] font-bold text-white leading-none">
-                      {bar.val}
+          <div className="h-32 w-full flex items-end justify-between px-4 pt-2">
+            {barData.map((bar, i) => {
+              const isHovered = hoveredBarIdx === i;
+              return (
+                <div
+                  key={i}
+                  className="flex flex-col items-center gap-2 flex-1 max-w-[55px] cursor-pointer"
+                  onMouseEnter={() => setHoveredBarIdx(i)}
+                  onMouseLeave={() => setHoveredBarIdx(null)}
+                >
+                  <div className="w-full bg-black/5 dark:bg-white/5 rounded-t-xl h-24 relative overflow-hidden flex items-end justify-center">
+                    <div
+                      className={`w-full bg-gradient-to-t from-[#FF9D42] to-[#FF8B2B] rounded-t-xl transition-all duration-300 relative ${
+                        isHovered ? 'brightness-110 scale-x-105 shadow-md shadow-[#FF9D42]/10' : ''
+                      }`}
+                      style={{ height: `${bar.val || 5}%` }}
+                    >
+                      {/* Tiny visual score badge on hover */}
+                      <div className="absolute top-1 left-1/2 -translate-x-1/2 text-[8px] font-bold text-white leading-none">
+                        {bar.val}
+                      </div>
                     </div>
                   </div>
+                  <span className={`text-[10px] truncate max-w-full text-center font-extrabold ${
+                    isHovered ? 'text-[#FF8B2B]' : 'text-[#707070] dark:text-stone-400'
+                  }`}>
+                    {bar.label}
+                  </span>
                 </div>
-                <span className="text-[10px] font-extrabold text-[#707070] truncate max-w-full text-center">
-                  {bar.label}
-                </span>
-              </div>
-            ))}
+              );
+            })}
+          </div>
+
+          {/* Dynamic interactive bar chart footer */}
+          <div className="min-h-[28px] mt-1 text-center text-[10px] text-[#707070] dark:text-stone-400 font-medium">
+            {hoveredBarIdx !== null ? (
+              <span className="animate-fadeIn block text-[#1B1B1B] dark:text-[#FAF8F5]">
+                Category <span className="font-extrabold text-[#FF8B2B]">{barData[hoveredBarIdx].label}</span> has an average score of <span className="font-extrabold text-[#FF8B2B]">{barData[hoveredBarIdx].val}/100</span>.
+              </span>
+            ) : (
+              <span className="italic block text-stone-400">Hover over any bar to view category averages.</span>
+            )}
           </div>
         </div>
 
@@ -201,34 +259,34 @@ export default function AnalyticsPanel({ ideas }: AnalyticsPanelProps) {
       <div className="liquid-glass-card spring-transition rounded-3xl p-6 space-y-4">
         <div>
           <span className="text-[10px] font-bold text-[#FF8B2B] uppercase tracking-wider block">Strategic Matrix</span>
-          <h4 className="text-sm font-bold text-[#1B1B1B] flex items-center gap-1.5">
+          <h4 className="text-sm font-bold text-[#1B1B1B] dark:text-[#FAF8F5] flex items-center gap-1.5">
             <Globe className="w-4 h-4 text-[#FF9D42]" />
             Opportunity Heatmap (Feasibility vs Potential)
           </h4>
         </div>
 
         {/* 2D Matrix plotting actual points */}
-        <div className="h-60 w-full bg-black/5 rounded-3xl relative border border-black-[0.03] overflow-hidden p-6">
+        <div className="h-60 w-full bg-[#FCFBF9] dark:bg-[#1A1817]/40 rounded-3xl relative border border-black/5 dark:border-white/5 overflow-hidden p-6 shadow-inner transition-colors">
           {/* Axis Labels */}
-          <div className="absolute left-3 top-1/2 -translate-y-1/2 [writing-mode:vertical-lr] rotate-180 text-[10px] font-bold text-[#999999] uppercase tracking-widest">
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 [writing-mode:vertical-lr] rotate-180 text-[9px] font-bold text-[#999999] dark:text-stone-500 uppercase tracking-widest pointer-events-none">
             Potential Rating →
           </div>
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 text-[10px] font-bold text-[#999999] uppercase tracking-widest">
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 text-[9px] font-bold text-[#999999] dark:text-stone-500 uppercase tracking-widest pointer-events-none">
             Technical Feasibility →
           </div>
 
           {/* Quad quadrants grid lines */}
-          <div className="absolute inset-0 grid grid-cols-2 grid-rows-2">
-            <div className="border-r border-b border-black/[0.04] flex items-start p-4 text-[9px] font-bold text-[#999999]">
+          <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 pointer-events-none">
+            <div className="border-r border-b border-black/[0.04] dark:border-white/[0.04] flex items-start p-4 text-[9px] font-bold text-[#999999] dark:text-stone-500">
               High Potential, Low Feasibility
             </div>
-            <div className="border-b border-black/[0.04] flex items-start justify-end p-4 text-[9px] font-bold text-[#FF8B2B]">
+            <div className="border-b border-black/[0.04] dark:border-white/[0.04] flex items-start justify-end p-4 text-[9px] font-bold text-[#FF8B2B]">
               GOLDMINE (High Potential & Feasibility)
             </div>
-            <div className="border-r border-black/[0.04] flex items-end p-4 text-[9px] font-bold text-[#999999]">
+            <div className="border-r border-black/[0.04] dark:border-white/[0.04] flex items-end p-4 text-[9px] font-bold text-[#999999] dark:text-stone-500">
               Low Potential, Low Feasibility
             </div>
-            <div className="flex items-end justify-end p-4 text-[9px] font-bold text-[#999999]">
+            <div className="flex items-end justify-end p-4 text-[9px] font-bold text-[#999999] dark:text-stone-500">
               Easy Wins (Low potential, High Feasibility)
             </div>
           </div>
@@ -238,22 +296,29 @@ export default function AnalyticsPanel({ ideas }: AnalyticsPanelProps) {
             // Map score dimensions to absolute percentages of coordinate
             // X axis: Feasibility (e.g. 50-100)
             // Y axis: Score/Potential (e.g. 50-100)
-            const xCoord = Math.max(10, Math.min(90, ((idea.feasibility || 75) - 50) * 1.8 + 10));
-            const yCoord = Math.max(10, Math.min(90, 100 - (((idea.score || 75) - 50) * 1.8 + 10)));
+            const xCoord = Math.max(12, Math.min(88, ((idea.feasibility || 75) - 50) * 1.8 + 10));
+            const yCoord = Math.max(12, Math.min(88, 100 - (((idea.score || 75) - 50) * 1.8 + 10)));
+            const isHovered = hoveredHeatmapId === idea.id;
             return (
               <div
                 key={idea.id}
-                className="absolute transform -translate-x-1/2 -translate-y-1/2 group z-10"
+                className="absolute transform -translate-x-1/2 -translate-y-1/2 z-10"
                 style={{ left: `${xCoord}%`, top: `${yCoord}%` }}
+                onMouseEnter={() => setHoveredHeatmapId(idea.id)}
+                onMouseLeave={() => setHoveredHeatmapId(null)}
               >
                 {/* Visual pulsating dot */}
-                <div className="w-4 h-4 bg-[#FF8B2B] border-2 border-white rounded-full shadow-md cursor-pointer transition-transform duration-300 group-hover:scale-125 flex items-center justify-center">
+                <div className={`w-4 h-4 bg-[#FF8B2B] border-2 border-white dark:border-[#1E1C1B] rounded-full shadow-md cursor-pointer transition-transform duration-300 ${
+                  isHovered ? 'scale-130' : 'hover:scale-125'
+                } flex items-center justify-center`}>
                   <div className="w-1.5 h-1.5 bg-white rounded-full animate-ping" />
                 </div>
                 {/* Floating tooltips */}
-                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 bg-slate-900 text-white rounded-xl p-2.5 shadow-lg w-40 text-[10px] pointer-events-none transition-all duration-300 z-50 text-center space-y-1">
+                <div className={`absolute bottom-6 left-1/2 -translate-x-1/2 bg-stone-900/95 dark:bg-[#2C2A29]/95 text-white rounded-xl p-2.5 shadow-lg w-44 text-[10px] pointer-events-none transition-all duration-300 z-50 text-center space-y-1 ${
+                  isHovered ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-1 scale-95'
+                }`}>
                   <span className="font-bold block text-white truncate">{idea.title}</span>
-                  <div className="flex justify-between font-medium text-slate-400">
+                  <div className="flex justify-between font-semibold text-stone-300 mt-0.5">
                     <span>Score: {idea.score}</span>
                     <span>Feasibility: {idea.feasibility}%</span>
                   </div>
