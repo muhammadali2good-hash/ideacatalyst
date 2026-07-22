@@ -18,6 +18,9 @@ import {
   ExternalLink,
   DollarSign as MoneyIcon,
   HelpCircle,
+  Loader2,
+  Lightbulb,
+  Zap,
 } from 'lucide-react';
 import {
   Radar,
@@ -38,6 +41,63 @@ export default function IdeaDetailsPanel({ idea, onClose }: IdeaDetailsPanelProp
   const [revenueTerm, setRevenueTerm] = useState<'monthly' | 'annual'>('monthly');
   const [hoveredRadarIdx, setHoveredRadarIdx] = useState<number | null>(null);
   const [hoveredRevenuePoint, setHoveredRevenuePoint] = useState<any>(null);
+
+  const [isGeneratingFeatures, setIsGeneratingFeatures] = useState(false);
+  const [liveFeatures, setLiveFeatures] = useState<any[]>(idea?.featureSuggestions || []);
+
+  React.useEffect(() => {
+    if (idea) {
+      setLiveFeatures(idea.featureSuggestions || []);
+    }
+  }, [idea]);
+
+  const handleFetchPuterFeatures = async () => {
+    if (!idea) return;
+    setIsGeneratingFeatures(true);
+    try {
+      const puter = (window as any).puter;
+      if (puter && puter.ai) {
+        const prompt = `You are a Silicon Valley principal product architect and AI strategist.
+Analyze this startup product concept:
+Title: "${idea.title}"
+Category: "${idea.category}"
+Description: "${idea.description}"
+
+Generate 4-5 innovative, highly actionable feature suggestions that would make this startup a market leader.
+Format output strictly as a valid JSON array of objects with no markdown wrapper:
+[
+  {
+    "title": "Feature Name",
+    "description": "Specific action-oriented workflow explanation of what this feature accomplishes.",
+    "impact": "Game Changer",
+    "effort": "Medium"
+  }
+]
+Impact values MUST be one of: "Game Changer", "High Impact", "Quick Win", "Essential".
+Effort values MUST be one of: "Low", "Medium", "High".`;
+
+        const res = await puter.ai.chat(prompt);
+        let cleaned = typeof res === 'string' ? res : (res as any)?.message?.content;
+        if (cleaned) {
+          cleaned = cleaned.trim();
+          if (cleaned.startsWith('```json')) cleaned = cleaned.slice(7);
+          else if (cleaned.startsWith('```')) cleaned = cleaned.slice(3);
+          if (cleaned.endsWith('```')) cleaned = cleaned.slice(0, -3);
+          cleaned = cleaned.trim();
+
+          const parsed = JSON.parse(cleaned);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setLiveFeatures(parsed);
+            idea.featureSuggestions = parsed;
+          }
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch Puter AI feature suggestions:", err);
+    } finally {
+      setIsGeneratingFeatures(false);
+    }
+  };
 
   if (!idea) {
     return (
@@ -433,16 +493,25 @@ export default function IdeaDetailsPanel({ idea, onClose }: IdeaDetailsPanelProp
     );
   };
 
-  // Build the direct Google Trends Explore Link
-  const trendsExploreLink = `https://trends.google.com/trends/explore?q=${encodeURIComponent(idea.title)}`;
+  // Clean terms helper function to prevent Google Trends "No Data Available" errors on long multi-word titles
+  const getCleanTrendTerm = (raw: string): string => {
+    if (!raw) return 'saas';
+    const clean = raw.replace(/[^a-zA-Z0-9\s]/g, '').trim();
+    const words = clean.split(/\s+/).filter(w => w.length > 1);
+    if (words.length <= 2) return words.join(' ');
+    const coreWords = words.filter(w => !/^(saas|platform|app|tool|system|for|with|and|the|a|an|of|in|to|on|management|software|solution|service|ai|automated|online|digital|cloud)$/i.test(w));
+    if (coreWords.length >= 1) return coreWords.slice(0, 2).join(' ');
+    return words.slice(0, 2).join(' ');
+  };
 
-  // Extract all core keyword terms from AI analysis (up to 5 keywords for Google Trends comparison limits)
+  const primaryCleanTerm = getCleanTrendTerm(idea.title);
+  const trendsExploreLink = `https://trends.google.com/trends/explore?q=${encodeURIComponent(primaryCleanTerm)}&geo=US`;
+
   const coreKeywordTerms = idea.keywords && idea.keywords.length > 0
-    ? idea.keywords.map(kw => kw.term)
-    : [idea.title];
+    ? idea.keywords.map(kw => getCleanTrendTerm(kw.term))
+    : [primaryCleanTerm];
 
-  // Direct 'Analyze on Google Trends' search URL
-  const googleTrendsKeywordsExploreURL = `https://trends.google.com/trends/explore?q=${encodeURIComponent(coreKeywordTerms.slice(0, 5).join(','))}`;
+  const googleTrendsKeywordsExploreURL = `https://trends.google.com/trends/explore?q=${encodeURIComponent(coreKeywordTerms.slice(0, 3).join(','))}&geo=US`;
 
   return (
     <div className="space-y-6">
@@ -597,9 +666,87 @@ export default function IdeaDetailsPanel({ idea, onClose }: IdeaDetailsPanelProp
                 <Sparkles className="w-4 h-4 text-[#FF9D42] animate-pulse" />
                 Executive Feasibility Summary
               </h4>
-              <p className="text-xs text-[#1B1B1B] leading-relaxed font-medium">
+              <p className="text-xs text-[#1B1B1B] dark:text-[#FAF8F5] leading-relaxed font-medium">
                 {idea.aiSummary}
               </p>
+            </div>
+
+            {/* AI FEATURE SUGGESTIONS (Puter.js AI Live Engine) */}
+            <div className="bg-white/60 dark:bg-black/40 border border-black/5 dark:border-white/10 rounded-3xl p-6 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-black/5 dark:border-white/10 pb-3">
+                <div>
+                  <h4 className="text-xs font-bold text-[#1B1B1B] dark:text-[#FAF8F5] uppercase tracking-wider flex items-center gap-2">
+                    <Lightbulb className="w-4 h-4 text-[#FF8B2B]" />
+                    <span>AI Feature Suggestions & Roadmap</span>
+                  </h4>
+                  <p className="text-[10px] text-[#707070] dark:text-[#999999] font-medium">
+                    Live AI-powered feature roadmap synthesized via Puter.js models
+                  </p>
+                </div>
+
+                <button
+                  id="fetch-puter-features-btn"
+                  onClick={handleFetchPuterFeatures}
+                  disabled={isGeneratingFeatures}
+                  className="px-3.5 py-2 bg-gradient-to-r from-[#FF9D42] to-[#FF8B2B] hover:shadow-md text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer self-start sm:self-auto disabled:opacity-50"
+                >
+                  {isGeneratingFeatures ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Synthesizing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="w-3.5 h-3.5" />
+                      <span>Generate Fresh Features</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Feature List */}
+              <div className="space-y-3">
+                {liveFeatures && liveFeatures.length > 0 ? (
+                  liveFeatures.map((ft: any, i: number) => (
+                    <div
+                      key={i}
+                      className="p-4 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl space-y-2 transition-all hover:border-[#FF8B2B]/30"
+                    >
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-[#FF8B2B]" />
+                          <h5 className="text-xs font-extrabold text-[#1B1B1B] dark:text-[#FAF8F5]">
+                            {ft.title}
+                          </h5>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <span className={`text-[9px] font-extrabold px-2 py-0.5 rounded-md ${
+                            ft.impact === 'Game Changer'
+                              ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20'
+                              : ft.impact === 'High Impact'
+                              ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20'
+                              : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                          }`}>
+                            {ft.impact || 'High Impact'}
+                          </span>
+                          <span className="text-[9px] font-bold px-2 py-0.5 rounded-md bg-black/5 dark:bg-white/10 text-gray-500 dark:text-gray-400">
+                            Effort: {ft.effort || 'Medium'}
+                          </span>
+                        </div>
+                      </div>
+                      <p className="text-[11px] text-[#707070] dark:text-[#999999] font-medium leading-relaxed pl-4">
+                        {ft.description}
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-4 text-center space-y-2">
+                    <p className="text-xs text-[#707070] dark:text-[#999999] font-medium">
+                      Click 'Generate Fresh Features' to fetch live Puter AI recommendations for this idea.
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* SWOT Matrix GRID */}

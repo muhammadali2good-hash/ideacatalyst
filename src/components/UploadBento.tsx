@@ -91,22 +91,14 @@ export default function UploadBento({ onAnalyzeIdea, onAnalyzeBatch, isAnalyzing
           const extractionPrompt = `You are an expert startup strategist. Analyze this raw text from an uploaded file named "${file.name}" and extract ALL separate, distinct startup/business/SaaS ideas mentioned in the file.
           
           Guidelines:
-          - Extract up to 6 distinct ideas.
+          - Extract ALL individual distinct ideas found in the document.
           - For each idea, assign a concise name/title and a descriptive 1-2 sentence overview/description.
           - Output MUST be a valid JSON array of objects. Do not write any conversational text, introductory text, markdown formatting blocks, or explanations. Only return raw valid JSON.
           
           Document Contents:
           """
-          ${rawText.slice(0, 12000)}
-          """
-          
-          JSON structure:
-          [
-            {
-              "title": "CleanEnergy SaaS",
-              "description": "An enterprise utility platform for calculating and offsetting team carbon emission footprint."
-            }
-          ]`;
+          ${rawText.slice(0, 25000)}
+          """`;
           
           const responseText = await puter.ai.chat(extractionPrompt);
           let cleaned = typeof responseText === 'string' ? responseText : (responseText as any)?.message?.content;

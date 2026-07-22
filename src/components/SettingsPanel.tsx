@@ -38,15 +38,18 @@ export default function SettingsPanel({ onClearBacklog, onLoadSampleData, ideasC
   useEffect(() => {
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
+      document.body.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
+      document.body.classList.remove('dark');
     }
     localStorage.setItem('theme', theme);
+    window.dispatchEvent(new Event('theme-change'));
   }, [theme]);
 
   const toggleTheme = (newTheme: 'light' | 'dark') => {
     setTheme(newTheme);
-    triggerToast(`Theme set to ${newTheme === 'light' ? 'Light Mode' : 'Dark Mode'}`);
+    triggerToast(`Theme set to ${newTheme === 'light' ? 'Bright Light Mode' : 'Pitch Black Dark Mode'}`);
   };
 
   const triggerToast = (msg: string) => {
@@ -101,15 +104,40 @@ export default function SettingsPanel({ onClearBacklog, onLoadSampleData, ideasC
         <div className="md:col-span-2 space-y-6">
           
           {/* Section 1: Visual Theme Toggle */}
-          <div className="liquid-glass-card rounded-3xl p-6 space-y-4">
-            <div>
-              <h3 className="text-sm font-bold text-[#1B1B1B] flex items-center gap-2">
-                <Sun className="w-4 h-4 text-[#FF9D42]" />
-                Interface Appearance
-              </h3>
-              <p className="text-[11px] text-[#707070] font-medium mt-0.5">
-                Toggle between standard crisp Light schema and premium Dark luxury atmosphere.
-              </p>
+          <div className="liquid-glass-card rounded-3xl p-6 space-y-5">
+            <div className="flex items-center justify-between pb-3 border-b border-black/5 dark:border-white/10">
+              <div>
+                <h3 className="text-sm font-bold text-[#1B1B1B] dark:text-[#FAF8F5] flex items-center gap-2">
+                  <Sun className="w-4 h-4 text-[#FF9D42]" />
+                  Interface Appearance
+                </h3>
+                <p className="text-[11px] text-[#707070] dark:text-[#A0A0A0] font-medium mt-0.5">
+                  Instant theme switch between Bright Crisp schema and Pitch Black luxury theme.
+                </p>
+              </div>
+
+              {/* Main Toggle Switch */}
+              <button
+                id="main-theme-toggle-switch"
+                type="button"
+                onClick={() => toggleTheme(theme === 'light' ? 'dark' : 'light')}
+                className={`w-14 h-7 rounded-full p-1 transition-all duration-300 relative flex items-center cursor-pointer ${
+                  theme === 'dark' ? 'bg-[#FF8B2B]' : 'bg-black/15'
+                }`}
+                title="Toggle Dark Mode"
+              >
+                <div
+                  className={`w-5 h-5 bg-white rounded-full shadow-md flex items-center justify-center transform transition-transform duration-300 ${
+                    theme === 'dark' ? 'translate-x-7 bg-[#1A1817]' : 'translate-x-0'
+                  }`}
+                >
+                  {theme === 'dark' ? (
+                    <Moon className="w-3 h-3 text-[#FF9D42]" />
+                  ) : (
+                    <Sun className="w-3 h-3 text-amber-500" />
+                  )}
+                </div>
+              </button>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -117,16 +145,16 @@ export default function SettingsPanel({ onClearBacklog, onLoadSampleData, ideasC
               <button
                 id="theme-light-btn"
                 onClick={() => toggleTheme('light')}
-                className={`p-4 rounded-2xl border text-left space-y-2 transition-all ${
+                className={`p-4 rounded-2xl border text-left space-y-2 transition-all cursor-pointer ${
                   theme === 'light'
-                    ? 'border-[#FF8B2B] bg-[#FF9D42]/5 text-[#FF8B2B]'
-                    : 'border-black/5 hover:bg-black/5 text-[#707070]'
+                    ? 'border-[#FF8B2B] bg-[#FF9D42]/10 text-[#FF8B2B] shadow-xs'
+                    : 'border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 text-[#707070] dark:text-[#A0A0A0]'
                 }`}
               >
-                <Sun className="w-5 h-5" />
+                <Sun className="w-5 h-5 text-amber-500" />
                 <div>
-                  <p className="text-xs font-bold text-[#1B1B1B]">Classic Crisp</p>
-                  <p className="text-[10px] text-[#707070] font-medium">Sophisticated warm cream white</p>
+                  <p className="text-xs font-bold text-[#1B1B1B] dark:text-white">Classic Bright</p>
+                  <p className="text-[10px] text-[#707070] dark:text-[#A0A0A0] font-medium">Sophisticated warm white cream</p>
                 </div>
               </button>
 
@@ -134,16 +162,16 @@ export default function SettingsPanel({ onClearBacklog, onLoadSampleData, ideasC
               <button
                 id="theme-dark-btn"
                 onClick={() => toggleTheme('dark')}
-                className={`p-4 rounded-2xl border text-left space-y-2 transition-all ${
+                className={`p-4 rounded-2xl border text-left space-y-2 transition-all cursor-pointer ${
                   theme === 'dark'
-                    ? 'border-[#FF8B2B] bg-[#FF9D42]/10 text-[#FF9D42]'
-                    : 'border-black/5 hover:bg-black/5 text-[#707070]'
+                    ? 'border-[#FF8B2B] bg-[#FF9D42]/15 text-[#FF9D42] shadow-xs'
+                    : 'border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 text-[#707070] dark:text-[#A0A0A0]'
                 }`}
               >
-                <Moon className="w-5 h-5" />
+                <Moon className="w-5 h-5 text-orange-400" />
                 <div>
-                  <p className="text-xs font-bold text-[#1B1B1B]">Premium Dark</p>
-                  <p className="text-[10px] text-[#707070] font-medium">Eye-safe modern carbon theme</p>
+                  <p className="text-xs font-bold text-[#1B1B1B] dark:text-white">Pitch Black Dark</p>
+                  <p className="text-[10px] text-[#707070] dark:text-[#A0A0A0] font-medium">Deep modern pitch-black theme</p>
                 </div>
               </button>
             </div>

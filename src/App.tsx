@@ -284,7 +284,27 @@ The output MUST be a single, valid JSON object with the following structure:
     "customerSegments": ["Early-stage developers", "Indie hackers", "Small agency owners"],
     "costStructure": ["Cloud hosting and database", "Puter AI API credits", "Customer support tooling"],
     "revenueStreams": ["Monthly SaaS subscriptions", "Add-on API credits usage pack"]
-  }
+  },
+  "featureSuggestions": [
+    {
+      "title": "Automated Real-time Data Sync",
+      "description": "Instant background sync engine connecting user data sources with zero manual exports.",
+      "impact": "Game Changer",
+      "effort": "Medium"
+    },
+    {
+      "title": "One-Click Export & Sharable Reports",
+      "description": "Export beautiful PDF executive briefs or share dynamic public dashboard links with 1-click.",
+      "impact": "High Impact",
+      "effort": "Low"
+    },
+    {
+      "title": "Smart AI Alert Triggers",
+      "description": "Receive webhook and email notifications when key threshold metrics or anomalies are detected.",
+      "impact": "Quick Win",
+      "effort": "Low"
+    }
+  ]
 }
 
 Be creative, complete, and extremely realistic in filling out every field. Do not leave placeholder text. Return ONLY the valid JSON block.`;

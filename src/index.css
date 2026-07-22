@@ -1,34 +1,37 @@
 @import "tailwindcss";
 
+@variant dark (&:where(.dark, .dark *));
+
 :root {
   --bg-color: #FAF8F5;
   --text-color: #1B1B1B;
-  --card-bg: rgba(255, 255, 255, 0.55);
-  --card-border: rgba(255, 255, 255, 0.6);
-  --shadow-color: rgba(0, 0, 0, 0.02);
+  --card-bg: rgba(255, 255, 255, 0.65);
+  --card-border: rgba(0, 0, 0, 0.08);
+  --shadow-color: rgba(0, 0, 0, 0.03);
   --inset-white: rgba(255, 255, 255, 0.8);
-  --sidebar-bg: rgba(255, 255, 255, 0.45);
-  --sidebar-border: rgba(255, 255, 255, 0.55);
+  --sidebar-bg: rgba(255, 255, 255, 0.55);
+  --sidebar-border: rgba(0, 0, 0, 0.08);
 }
 
 .dark {
-  --bg-color: #121110; /* Rich modern carbon */
-  --text-color: #FAF8F5;
-  --card-bg: rgba(26, 24, 23, 0.65);
-  --card-border: rgba(255, 255, 255, 0.08);
-  --shadow-color: rgba(0, 0, 0, 0.2);
-  --inset-white: rgba(255, 255, 255, 0.03);
-  --sidebar-bg: rgba(20, 19, 18, 0.6);
-  --sidebar-border: rgba(255, 255, 255, 0.06);
+  --bg-color: #08080A; /* Pitch Black Luxury Dark Theme */
+  --text-color: #FAFAFA;
+  --card-bg: rgba(18, 18, 22, 0.85);
+  --card-border: rgba(255, 255, 255, 0.12);
+  --shadow-color: rgba(0, 0, 0, 0.6);
+  --inset-white: rgba(255, 255, 255, 0.05);
+  --sidebar-bg: rgba(12, 12, 14, 0.88);
+  --sidebar-border: rgba(255, 255, 255, 0.1);
+  color-scheme: dark;
 }
 
 /* Plus Jakarta Sans fonts and letter spacing rules */
-body {
+html, body {
   font-family: 'Plus Jakarta Sans', sans-serif !important;
-  background-color: var(--bg-color); /* Beautiful premium soft warm white/cream or dark carbon */
+  background-color: var(--bg-color) !important;
   letter-spacing: -0.01em;
-  color: var(--text-color);
-  transition: background-color 0.4s ease, color 0.4s ease;
+  color: var(--text-color) !important;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* FORCE PLUS JAKARTA SANS GLOBALLY & PREVENT BOLD WEIGHTS */

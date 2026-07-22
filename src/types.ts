@@ -68,6 +68,20 @@ export interface Idea {
     costStructure: string[];
     revenueStreams: string[];
   };
+
+  featureSuggestions?: {
+    title: string;
+    description: string;
+    impact: 'Game Changer' | 'High Impact' | 'Quick Win' | 'Essential';
+    effort: 'Low' | 'Medium' | 'High';
+  }[];
+
+  livePuterInsights?: {
+    marketGap: string;
+    recommendedStack: string;
+    differentiator: string;
+    suggestedFeatures: string[];
+  };
 }
 
 export interface EvaluationRule {
