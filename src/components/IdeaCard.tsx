@@ -98,10 +98,10 @@ export default function IdeaCard({ idea, onOpenDetails, isFavorited, onToggleFav
       {/* Top row: Category & Score Circle */}
       <div className="flex items-start justify-between">
         <div className="space-y-1">
-          <span className="text-[10px] font-bold text-[#999999] uppercase tracking-wider block">
+          <span className="text-[10px] font-bold text-[#999999] dark:text-stone-400 uppercase tracking-wider block">
             {idea.category}
           </span>
-          <h4 className="text-[16px] font-bold text-[#1B1B1B] leading-tight line-clamp-1 group-hover:text-[#FF8B2B] transition-colors">
+          <h4 className="text-[16px] font-bold text-[#1B1B1B] dark:text-white leading-tight line-clamp-1 group-hover:text-[#FF8B2B] transition-colors">
             {idea.title}
           </h4>
         </div>
@@ -113,7 +113,7 @@ export default function IdeaCard({ idea, onOpenDetails, isFavorited, onToggleFav
               cx="24"
               cy="24"
               r="20"
-              className="stroke-black/5"
+              className="stroke-black/5 dark:stroke-white/10"
               strokeWidth="3.5"
               fill="transparent"
             />
@@ -136,23 +136,23 @@ export default function IdeaCard({ idea, onOpenDetails, isFavorited, onToggleFav
       </div>
 
       {/* Mid section: Description */}
-      <p className="text-xs text-[#707070] font-medium leading-relaxed line-clamp-3 my-3">
+      <p className="text-xs text-[#707070] dark:text-stone-300 font-medium leading-relaxed line-clamp-3 my-3">
         {idea.description}
       </p>
 
       {/* Grid of Key dimensions */}
-      <div className="grid grid-cols-3 gap-2 py-3 border-y border-black/5 text-[10px] font-bold text-[#707070]">
+      <div className="grid grid-cols-3 gap-2 py-3 border-y border-black/5 dark:border-white/10 text-[10px] font-bold text-[#707070] dark:text-stone-400">
         <div>
-          <span className="text-[#999999] block mb-0.5">Potential</span>
-          <span className="text-[#1B1B1B] font-extrabold">{idea.potential}</span>
+          <span className="text-[#999999] dark:text-stone-400 block mb-0.5">Potential</span>
+          <span className="text-[#1B1B1B] dark:text-white font-extrabold">{idea.potential}</span>
         </div>
         <div>
-          <span className="text-[#999999] block mb-0.5">Competition</span>
-          <span className="text-[#1B1B1B] font-extrabold">{idea.competition}</span>
+          <span className="text-[#999999] dark:text-stone-400 block mb-0.5">Competition</span>
+          <span className="text-[#1B1B1B] dark:text-white font-extrabold">{idea.competition}</span>
         </div>
         <div>
-          <span className="text-[#999999] block mb-0.5">Trend</span>
-          <span className="text-emerald-600 font-extrabold">{idea.trend}</span>
+          <span className="text-[#999999] dark:text-stone-400 block mb-0.5">Trend</span>
+          <span className="text-emerald-600 dark:text-emerald-400 font-extrabold">{idea.trend}</span>
         </div>
       </div>
 

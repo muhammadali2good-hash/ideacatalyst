@@ -135,11 +135,11 @@ export default function BentoStats({ ideas }: BentoStatsProps) {
               className="liquid-glass-card spring-transition spring-hover rounded-3xl p-6 group flex items-start justify-between relative overflow-hidden"
             >
               <div className="space-y-4">
-                <span className="text-xs text-[#707070] uppercase tracking-wider block">
+                <span className="text-xs text-[#707070] dark:text-stone-400 uppercase tracking-wider block">
                   {stat.label}
                 </span>
                 <div className="space-y-1">
-                  <span className="text-2xl font-normal text-[#1B1B1B] block">
+                  <span className="text-2xl font-normal text-[#1B1B1B] dark:text-white block">
                     {stat.value}
                   </span>
                   <span className={`text-[10px] font-normal ${stat.changeColor} block`}>
@@ -161,8 +161,8 @@ export default function BentoStats({ ideas }: BentoStatsProps) {
         <div className="lg:col-span-2 liquid-glass-card spring-transition rounded-3xl p-6 flex flex-col justify-between relative">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h4 className="text-sm font-normal text-[#1B1B1B]">Weekly analysis activity</h4>
-              <p className="text-xs text-[#707070] font-normal">Candidate opportunity scores plotted sequentially in your workspace</p>
+              <h4 className="text-sm font-normal text-[#1B1B1B] dark:text-white">Weekly analysis activity</h4>
+              <p className="text-xs text-[#707070] dark:text-stone-400 font-normal">Candidate opportunity scores plotted sequentially in your workspace</p>
             </div>
             {ideasCount > 0 && (
               <span className="px-2.5 py-1 rounded-lg text-[10px] font-normal text-[#FF8B2B] bg-[#FF9D42]/10">
@@ -174,17 +174,17 @@ export default function BentoStats({ ideas }: BentoStatsProps) {
           {/* Core Chart Canvas wrapper */}
           <div className="h-44 w-full relative pt-2">
             {ideasCount === 0 ? (
-              <div className="w-full h-full flex flex-col items-center justify-center border border-dashed border-black/10 rounded-2xl bg-black/[0.01]">
-                <TrendingUp className="w-8 h-8 text-[#999999] mb-2 stroke-[1.5]" />
-                <p className="text-xs text-[#707070] font-normal">No analysis trends available yet.</p>
-                <span className="text-[10px] text-[#999999] font-normal">Upload and score your first idea in the Console to activate.</span>
+              <div className="w-full h-full flex flex-col items-center justify-center border border-dashed border-black/10 dark:border-white/10 rounded-2xl bg-black/[0.01] dark:bg-white/[0.01]">
+                <TrendingUp className="w-8 h-8 text-[#999999] dark:text-stone-500 mb-2 stroke-[1.5]" />
+                <p className="text-xs text-[#707070] dark:text-stone-400 font-normal">No analysis trends available yet.</p>
+                <span className="text-[10px] text-[#999999] dark:text-stone-500 font-normal">Upload and score your first idea in the Console to activate.</span>
               </div>
             ) : (
               <div className="w-full h-full relative">
                 {/* HTML Interactive Tooltip Overlay */}
                 {hoveredIndex !== null && chartData[hoveredIndex] && (
                   <div
-                    className="absolute bg-white/95 backdrop-blur-md shadow-lg border border-orange-100 rounded-xl p-3 z-30 transition-all duration-200 pointer-events-none text-left"
+                    className="absolute bg-white/95 dark:bg-[#1E1C1A]/95 backdrop-blur-md shadow-lg border border-orange-100 dark:border-orange-900/30 rounded-xl p-3 z-30 transition-all duration-200 pointer-events-none text-left"
                     style={{
                       left: `${(dataPoints[hoveredIndex]?.x || 0) / svgWidth * 100}%`,
                       top: `${(dataPoints[hoveredIndex]?.y || 0) / svgHeight * 100 - 15}%`,
@@ -194,15 +194,15 @@ export default function BentoStats({ ideas }: BentoStatsProps) {
                     <span className="text-[9px] font-normal text-[#FF8B2B] uppercase block">
                       {chartData[hoveredIndex].category}
                     </span>
-                    <h5 className="text-xs font-normal text-[#1B1B1B] truncate max-w-[150px]">
+                    <h5 className="text-xs font-normal text-[#1B1B1B] dark:text-white truncate max-w-[150px]">
                       {chartData[hoveredIndex].title}
                     </h5>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-[10px] text-[#707070]">Score:</span>
-                      <span className="text-xs font-normal text-emerald-600">
+                      <span className="text-[10px] text-[#707070] dark:text-stone-400">Score:</span>
+                      <span className="text-xs font-normal text-emerald-600 dark:text-emerald-400">
                         {chartData[hoveredIndex].score}%
                       </span>
-                      <span className="text-[9px] bg-orange-50 px-1.5 py-0.5 rounded-md text-[#FF8B2B]">
+                      <span className="text-[9px] bg-orange-50 dark:bg-orange-950/40 px-1.5 py-0.5 rounded-md text-[#FF8B2B]">
                         {chartData[hoveredIndex].potential}
                       </span>
                     </div>

@@ -74,8 +74,10 @@ export default function App() {
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark') {
       document.documentElement.classList.add('dark');
+      document.body.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
+      document.body.classList.remove('dark');
     }
   }, []);
 
@@ -702,12 +704,12 @@ Be creative, complete, and extremely realistic in filling out every field. Do no
   const userFirstName = userEmail ? userEmail.split('@')[0] : 'Alex';
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-[#FAF8F5] flex p-4 text-[#1B1B1B] dot-grid">
+    <div className="min-h-screen relative overflow-hidden bg-[#FAF8F5] dark:bg-[#0B0A09] flex p-4 text-[#1B1B1B] dark:text-[#F5F4F0] dot-grid transition-colors duration-300">
       
       {/* Visual Ambient Background Blobs (Soft orange/peach gradients with animated floating orbs) */}
-      <div className="absolute top-[-100px] right-[-100px] w-[500px] h-[500px] bg-[#FF9D42]/12 rounded-full filter blur-[100px] pointer-events-none z-0 animate-orb-1" />
-      <div className="absolute bottom-[-100px] left-[-100px] w-[500px] h-[500px] bg-[#FFD6A5]/15 rounded-full filter blur-[100px] pointer-events-none z-0 animate-orb-2" />
-      <div className="absolute top-[35%] left-[25%] w-[400px] h-[400px] bg-[#FF8B2B]/8 rounded-full filter blur-[120px] pointer-events-none z-0 animate-orb-3" />
+      <div className="absolute top-[-100px] right-[-100px] w-[500px] h-[500px] bg-[#FF9D42]/12 dark:bg-[#FF9D42]/8 rounded-full filter blur-[100px] pointer-events-none z-0 animate-orb-1" />
+      <div className="absolute bottom-[-100px] left-[-100px] w-[500px] h-[500px] bg-[#FFD6A5]/15 dark:bg-[#FF8B2B]/5 rounded-full filter blur-[100px] pointer-events-none z-0 animate-orb-2" />
+      <div className="absolute top-[35%] left-[25%] w-[400px] h-[400px] bg-[#FF8B2B]/8 dark:bg-[#FF8B2B]/4 rounded-full filter blur-[120px] pointer-events-none z-0 animate-orb-3" />
 
       {/* Main Core Layout Grid */}
       <div className="relative z-10 w-full max-w-7xl mx-auto flex items-stretch">
@@ -746,13 +748,13 @@ Be creative, complete, and extremely realistic in filling out every field. Do no
                     <Sparkles className="w-4 h-4 text-[#FF9D42] animate-spin" style={{ animationDuration: '4s' }} />
                     <span>AI ready · 5 new signals today</span>
                   </div>
-                  <h2 className="text-4xl md:text-5xl font-extrabold text-[#1B1B1B] tracking-tight capitalize">
+                  <h2 className="text-4xl md:text-5xl font-extrabold text-[#1B1B1B] dark:text-white tracking-tight capitalize">
                     Good morning, {userFirstName}. <br />
                     <span className="bg-gradient-to-r from-[#FF9D42] to-[#FF8B2B] bg-clip-text text-transparent">
                       Let's analyze what could win.
                     </span>
                   </h2>
-                  <p className="text-sm text-[#707070] font-medium max-w-xl">
+                  <p className="text-sm text-[#707070] dark:text-stone-300 font-medium max-w-xl">
                     Upload raw ideas, set evaluation rules, and let AI surface the ones worth building.
                   </p>
                 </div>
@@ -761,11 +763,11 @@ Be creative, complete, and extremely realistic in filling out every field. Do no
                 <BentoStats ideas={ideas} />
 
                 {/* Add Ideas fast CTA Banner */}
-                <div className="bg-white/65 backdrop-blur-xl border border-white/45 shadow-sm rounded-3xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="bg-white/65 dark:bg-[#161412]/80 backdrop-blur-xl border border-white/45 dark:border-[#FF9D42]/20 shadow-sm rounded-3xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="space-y-1">
                     <span className="text-[10px] font-bold text-[#FF8B2B] uppercase tracking-wider block">Quick Ingest</span>
-                    <h4 className="text-sm font-bold text-[#1B1B1B]">Ready to evaluate a new project concept?</h4>
-                    <p className="text-xs text-[#707070] font-medium">Instantly analyze text descriptions or PDF briefs with custom weights.</p>
+                    <h4 className="text-sm font-bold text-[#1B1B1B] dark:text-white">Ready to evaluate a new project concept?</h4>
+                    <p className="text-xs text-[#707070] dark:text-stone-300 font-medium">Instantly analyze text descriptions or PDF briefs with custom weights.</p>
                   </div>
                   <button
                     id="dashboard-evaluate-quick-btn"
@@ -781,8 +783,8 @@ Be creative, complete, and extremely realistic in filling out every field. Do no
                 <div className="space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                      <h3 className="text-lg font-extrabold text-[#1B1B1B] tracking-tight">Extracted ideas</h3>
-                      <p className="text-xs text-[#707070] font-medium">Candidate opportunity scores for your active workspace</p>
+                      <h3 className="text-lg font-extrabold text-[#1B1B1B] dark:text-white tracking-tight">Extracted ideas</h3>
+                      <p className="text-xs text-[#707070] dark:text-stone-300 font-medium">Candidate opportunity scores for your active workspace</p>
                     </div>
                     {/* Category quick selectors */}
                     <div className="flex flex-wrap items-center gap-2">
@@ -794,7 +796,7 @@ Be creative, complete, and extremely realistic in filling out every field. Do no
                           className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
                             selectedCategory === cat
                               ? 'bg-[#FF8B2B] text-white shadow-sm'
-                              : 'bg-black/5 text-[#707070] hover:bg-black/10'
+                              : 'bg-black/5 dark:bg-white/10 text-[#707070] dark:text-stone-300 hover:bg-black/10 dark:hover:bg-white/20 hover:text-[#1B1B1B] dark:hover:text-white'
                           }`}
                         >
                           {cat}
@@ -818,7 +820,7 @@ Be creative, complete, and extremely realistic in filling out every field. Do no
                       ))}
                     </div>
                   ) : (
-                    <div className="bg-white/65 backdrop-blur-xl border border-white/45 p-12 rounded-3xl text-center text-xs font-semibold text-[#707070] space-y-2">
+                    <div className="bg-white/65 dark:bg-[#161412]/80 backdrop-blur-xl border border-white/45 dark:border-white/10 p-12 rounded-3xl text-center text-xs font-semibold text-[#707070] dark:text-stone-300 space-y-2">
                       <p>No candidate ideas match your criteria, filters, or search term.</p>
                       <button
                         onClick={() => { setSearchQuery(''); setSelectedCategory('All'); }}
@@ -835,22 +837,22 @@ Be creative, complete, and extremely realistic in filling out every field. Do no
             {/* TAB: IDEAS WORKSPACE */}
             {activeTab === 'ideas' && (
               <div className="space-y-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/65 backdrop-blur-xl border border-white/45 p-6 rounded-3xl">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/65 dark:bg-[#161412]/80 backdrop-blur-xl border border-white/45 dark:border-white/10 p-6 rounded-3xl">
                   <div>
-                    <h3 className="text-lg font-extrabold text-[#1B1B1B] tracking-tight">Active Ideas Backlog</h3>
-                    <p className="text-xs text-[#707070] font-medium">Manage, sort, and deep-dive into your calculated opportunities.</p>
+                    <h3 className="text-lg font-extrabold text-[#1B1B1B] dark:text-white tracking-tight">Active Ideas Backlog</h3>
+                    <p className="text-xs text-[#707070] dark:text-stone-300 font-medium">Manage, sort, and deep-dive into your calculated opportunities.</p>
                   </div>
                   
                   {/* Detailed Filters row */}
                   <div className="flex flex-wrap items-center gap-3">
-                    <div className="flex items-center gap-1.5 bg-black/5 p-1.5 rounded-xl text-xs font-bold">
-                      <span className="text-[#999999] px-2">Potential</span>
+                    <div className="flex items-center gap-1.5 bg-black/5 dark:bg-white/10 p-1.5 rounded-xl text-xs font-bold">
+                      <span className="text-[#999999] dark:text-stone-400 px-2">Potential</span>
                       {['All', 'High', 'Medium'].map((pot) => (
                         <button
                           key={pot}
                           onClick={() => setSelectedPotential(pot)}
                           className={`px-2.5 py-1 rounded-lg transition-colors ${
-                            selectedPotential === pot ? 'bg-white text-[#1B1B1B] shadow-sm' : 'text-[#707070]'
+                            selectedPotential === pot ? 'bg-white dark:bg-[#FF8B2B] text-[#1B1B1B] dark:text-white shadow-sm' : 'text-[#707070] dark:text-stone-300'
                           }`}
                         >
                           {pot}
@@ -864,7 +866,7 @@ Be creative, complete, and extremely realistic in filling out every field. Do no
                         setSelectedPotential('All');
                         setSearchQuery('');
                       }}
-                      className="px-3.5 py-2 bg-black/5 hover:bg-black/10 rounded-xl text-xs font-bold text-[#707070] transition-colors"
+                      className="px-3.5 py-2 bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 rounded-xl text-xs font-bold text-[#707070] dark:text-stone-300 transition-colors"
                     >
                       Reset Filters
                     </button>
@@ -886,7 +888,7 @@ Be creative, complete, and extremely realistic in filling out every field. Do no
                     ))}
                   </div>
                 ) : (
-                  <div className="bg-white/65 border border-white/45 p-12 rounded-3xl text-center text-xs font-semibold text-[#707070]">
+                  <div className="bg-white/65 dark:bg-[#161412]/80 border border-white/45 dark:border-white/10 p-12 rounded-3xl text-center text-xs font-semibold text-[#707070] dark:text-stone-300">
                     No ideas match your current query or filters.
                   </div>
                 )}
