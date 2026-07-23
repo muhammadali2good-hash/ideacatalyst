@@ -163,6 +163,167 @@ Be realistic but creative, thorough, and analytical. Do not output any markdown 
   }
 });
 
+// SaaS Idea Extraction Engine endpoint
+app.post('/api/extract-ideas', async (req, res) => {
+  try {
+    const { sources } = req.body; // Array of { id, name, type: 'TXT' | 'PDF' | 'CSV', content }
+
+    if (!sources || !Array.isArray(sources) || sources.length === 0) {
+      return res.status(400).json({ error: 'At least one source document (TXT, PDF, or CSV) is required.' });
+    }
+
+    if (!ai) {
+      return res.status(503).json({
+        error: 'Gemini API key is not configured in secrets. Please set GEMINI_API_KEY in Settings.',
+      });
+    }
+
+    const sourcesContext = sources.map((s: any, idx: number) => `
+--- SOURCE FILE #${idx + 1} ---
+ID: ${s.id || `SRC_${idx + 1}`}
+NAME: ${s.name || `Source_${idx + 1}`}
+TYPE: ${s.type || 'TXT'}
+CONTENT:
+${s.content}
+`).join('\n\n');
+
+    const extractionPrompt = `
+You are the Idea Extraction Engine for a SaaS Idea Validator and SaaS Idea Visualizer.
+
+Your job:
+1) Ingest source files in TXT, PDF, and CSV formats.
+2) Extract only real business problems, complaints, pain points, workflow breakdowns, workaround behavior, and explicit willingness-to-pay signals.
+3) Cluster repeated complaints into themes.
+4) Validate each theme against evidence rules.
+5) Score only themes that pass the validation gate.
+6) Return structured output for the SaaS Idea Visualizer.
+
+IMPORTANT RULES:
+- Do not invent ideas from imagination.
+- Every idea must trace back to real extracted evidence from the uploaded source files.
+- If evidence is weak, incomplete, or single-source, reject the theme.
+- Never claim market demand unless there are at least 2 independent evidence points from the sources.
+- Never approximate numbers if the source does not provide them. Use "no data".
+- Prefer specific, repeated, recurring pain points over vague or one-off complaints.
+- Focus on ideas that are simple to build, have clear organic-search intent, and can monetize through ads, subscriptions, or lead capture.
+
+VALIDATION GATE:
+A theme passes ONLY if it meets at least 3 of these 5 criteria:
+1) Repeated complaints across independent sources
+2) Clear search demand
+3) Evidence of willingness to pay
+4) Low or manageable competition
+5) Clear specific use case
+If it fails (< 3 met), reject it.
+
+SCORING RUBRIC (0 to 5 for each category, Total = /30):
+- Pain Intensity (0-5)
+- Repetition Across Sources (0-5)
+- Willingness to Pay (0-5)
+- Search Demand (0-5)
+- Competition Gap (0-5)
+- SEO Feasibility (0-5)
+
+SOURCE FILES TO ANALYZE:
+${sourcesContext}
+
+Return ONLY valid raw JSON matching this schema:
+{
+  "validated_ideas": [
+    {
+      "id": "string",
+      "opportunity_name": "string",
+      "problem": "string",
+      "target_user": "string",
+      "why_it_matters": "string",
+      "evidence_signals": [
+        {
+          "source_id": "string",
+          "source_type": "TXT",
+          "verbatim_complaint_snippet": "string",
+          "problem_summary": "string",
+          "desired_outcome": "string",
+          "workaround_used": "string",
+          "willingness_to_pay_signal": "string",
+          "target_user": "string",
+          "confidence_level": "High"
+        }
+      ],
+      "demand_validation": "string",
+      "competition_analysis": "string",
+      "SEO_analysis": "string",
+      "monetization_angle": "string",
+      "score_breakdown": {
+        "pain_intensity": 5,
+        "repetition_across_sources": 4,
+        "willingness_to_pay": 4,
+        "search_demand": 4,
+        "competition_gap": 4,
+        "seo_feasibility": 5
+      },
+      "total_score": 26,
+      "verdict": "Pass",
+      "confidence": "High",
+      "uncertainty_notes": "string",
+      "sources_used": ["string"],
+      "visualizer": {
+        "idea_title": "string",
+        "pain_score": 5,
+        "demand_score": 4,
+        "competition_score": 4,
+        "seo_score": 5,
+        "monetization_score": 4,
+        "verdict_color": "#FF8B2B",
+        "source_count": 2,
+        "keywords": ["string"],
+        "trend_link": "https://trends.google.com"
+      }
+    }
+  ],
+  "rejected_themes": [
+    {
+      "id": "string",
+      "theme_name": "string",
+      "rejection_reason": "string",
+      "failed_criteria": ["string"],
+      "evidence_count": 1,
+      "sources_involved": ["string"]
+    }
+  ],
+  "extraction_summary": {
+    "total_sources_analyzed": 1,
+    "total_evidence_units_extracted": 5,
+    "themes_clustered": 3,
+    "themes_passed": 2,
+    "themes_rejected": 1
+  }
+}
+`;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.6-flash',
+      contents: extractionPrompt,
+      config: {
+        responseMimeType: 'application/json',
+      },
+    });
+
+    const textOutput = response.text;
+    if (!textOutput) {
+      throw new Error('Empty response received from Gemini for Idea Extraction.');
+    }
+
+    const parsedResult = JSON.parse(textOutput.trim());
+    res.json({ success: true, data: parsedResult });
+  } catch (error: any) {
+    console.error('Idea Extraction Error:', error);
+    res.status(500).json({
+      error: 'Failed to run idea extraction engine.',
+      details: error.message,
+    });
+  }
+});
+
 // Setup Vite Dev Server / Static Asset Hosting
 async function setupServer() {
   if (process.env.NODE_ENV !== 'production') {

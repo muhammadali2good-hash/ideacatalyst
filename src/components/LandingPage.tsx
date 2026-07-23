@@ -1,5 +1,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
+import AstryxCanvasBackground from './AstryxCanvasBackground';
+import ExtractionEnginePanel from './ExtractionEnginePanel';
 import {
   Sparkles,
   ArrowRight,
@@ -137,6 +139,9 @@ export default function LandingPage({ onGoToDashboard, savedEmail = '' }: Landin
   return (
     <div className="min-h-screen relative overflow-hidden bg-[#FAF8F5] dark:bg-[#121110] text-[#1B1B1B] dark:text-white dot-grid flex flex-col selection:bg-[#FF9D42]/20 transition-colors">
       
+      {/* Astryx Interactive Particle Mesh Background */}
+      <AstryxCanvasBackground />
+
       {/* Decorative Elegant Ambient Gradients */}
       <div className="absolute top-[-150px] right-[-150px] w-[650px] h-[650px] bg-[#FF9D42]/10 rounded-full filter blur-[120px] pointer-events-none z-0 animate-orb-1" />
       <div className="absolute bottom-[-150px] left-[-150px] w-[650px] h-[650px] bg-[#FFD6A5]/15 rounded-full filter blur-[120px] pointer-events-none z-0 animate-orb-2" />
