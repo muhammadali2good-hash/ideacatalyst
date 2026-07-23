@@ -30,49 +30,8 @@ interface ExtractionEnginePanelProps {
   onAddIdeaToBacklog: (idea: Idea) => void;
 }
 
-const SAMPLE_SOURCE_FILES: SourceDocument[] = [
-  {
-    id: 'SRC_001',
-    name: 'Reddit_rSaaS_Pain_Points.csv',
-    type: 'CSV',
-    uploadedAt: '2026-07-23',
-    content: `row_id,subreddit,post_title,comment_body,upvotes
-1,r/SaaS,"Google Review response automation","We manage 15 local dentist clinics. Responding to Google reviews takes 10+ hours a week. We tried ChatGPT but copying and pasting into Google Business Profile manually is so broken and tedious. I would pay $100/mo for a tool that syncs Google Business API and drafts customized responses.",142
-2,r/Entrepreneur,"HR Policy Q&A bot","Our company handbook is 120 pages. Employees constantly spam HR asking how many PTO days they have left or maternity leave rules. I tried building a custom GPT, but it hallucinates policy rules. I need a verified document Q&A bot with citation links.",89
-3,r/smallbusiness,"Receipt to accounting import nightmare","Importing receipts into QuickBooks is an absolute nightmare. The OCR fails on crinkled receipts and my accountant charges $80/hour just to manually clean up date formats. Is there any clean solution that auto-reconciles bank statements?",210
-4,r/SaaS,"Resume bullet rewriting","Job seekers keep asking for AI resume rewrites, but there are already 50 free tools doing this. I don't think anyone pays.",12`
-  },
-  {
-    id: 'SRC_002',
-    name: 'G2_Customer_Reviews_Export.txt',
-    type: 'TXT',
-    uploadedAt: '2026-07-23',
-    content: `Source: G2 Verified Reviews for Local Marketing Platforms
-Date: July 2026
-
-Feedback #1:
-"The biggest frustration our local agency faces is Google Review response automation. Managing 40+ client locations is exhausting. Takes too long to switch accounts manually. We'd gladly pay $150/mo if a SaaS auto-drafted personalized responses with 1-click approvals."
-
-Feedback #2:
-"Receipt to accounting import is completely broken in existing accounting software. OCR drops line items and tax totals, forcing manual data entry. Our bookkeepers spend 15 hours every month fixing receipt errors."
-
-Feedback #3:
-"Meeting notes cleanup tools are too expensive and don't integrate with custom CRMs. We need a lightweight transcript summarizer that pushes action items to Notion."`
-  },
-  {
-    id: 'SRC_003',
-    name: 'AppStore_Feedback_Logs.pdf',
-    type: 'PDF',
-    uploadedAt: '2026-07-23',
-    content: `[Page 1 - AppStore Complaints Log]
-User ID 884: "Need a tool for HR policy Q&A! Employees ask the same 20 questions every week. Our HR team is overwhelmed manually answering policy questions that are already written in our PDF employee handbook."
-
-User ID 912: "Wish there was a simple Google review responder for small restaurant owners. I'm busy in the kitchen and can't spend 2 hours every night typing review replies on my phone. I'd pay $49/mo for this."`
-  }
-];
-
 export default function ExtractionEnginePanel({ onAddIdeaToBacklog }: ExtractionEnginePanelProps) {
-  const [sources, setSources] = useState<SourceDocument[]>(SAMPLE_SOURCE_FILES);
+  const [sources, setSources] = useState<SourceDocument[]>([]);
   const [activeTab, setActiveTab] = useState<'upload' | 'results' | 'rejected'>('upload');
   const [isExtracting, setIsExtracting] = useState<boolean>(false);
   const [extractionResult, setExtractionResult] = useState<ExtractionResult | null>(null);
@@ -171,182 +130,206 @@ export default function ExtractionEnginePanel({ onAddIdeaToBacklog }: Extraction
         throw new Error('Invalid extraction payload returned from server.');
       }
     } catch (err: any) {
-      console.warn('API extraction failed, falling back to rule-based engine:', err);
-      // Client-side fallback rule-based extraction engine following exact user prompt rules
+      console.warn('API extraction failed, running dynamic rule-based analyzer on provided sources:', err);
+      // Client-side fallback rule-based extraction engine dynamically analyzing input sources
       runClientSideExtractionFallback();
     } finally {
       setIsExtracting(false);
     }
   };
 
-  // Client-side fallback implementation of the exact prompt rules
+  // Dynamic client-side analyzer that parses user's provided sources line-by-line
   const runClientSideExtractionFallback = () => {
-    // Exact themes based on input sources
-    const validated: ValidatedIdea[] = [
-      {
-        id: 'val_001',
-        opportunity_name: 'Google Review Response Automation SaaS',
-        problem: 'Local agencies and business owners spend 10+ hours/week manually responding to Google Reviews across multiple Google Business Profile accounts.',
-        target_user: 'Local SEO Marketing Agencies, Multi-Location Restaurant & Dental Franchise Owners',
-        why_it_matters: 'Manual review replies are tedious, slow down client reporting, and negatively impact local search SEO rankings when delayed.',
-        evidence_signals: [
-          {
-            source_id: 'SRC_001',
-            source_type: 'CSV',
-            date: '2026-07-23',
-            title_or_row_label: 'Row 1 (r/SaaS)',
-            verbatim_complaint_snippet: 'Responding to Google reviews takes 10+ hours a week... copying and pasting manually is so broken. I would pay $100/mo.',
-            problem_summary: 'Manual review responses take 10+ hours weekly with broken copy-paste workflows.',
-            desired_outcome: 'Google Business API sync with automated customized response drafts.',
-            workaround_used: 'ChatGPT + manual copy-paste into Google Business Profile.',
-            willingness_to_pay_signal: 'Explicit willingness to pay $100/mo.',
-            target_user: 'Dental clinic managers & agencies',
-            confidence_level: 'High'
-          },
-          {
-            source_id: 'SRC_002',
-            source_type: 'TXT',
-            date: '2026-07-23',
-            title_or_row_label: 'G2 Review #1',
-            verbatim_complaint_snippet: 'Managing 40+ client locations is exhausting... We\'d gladly pay $150/mo if a SaaS auto-drafted personalized responses.',
-            problem_summary: 'Managing multiple locations is exhausting and time-consuming.',
-            desired_outcome: '1-click approval for auto-drafted AI personalized review responses.',
-            workaround_used: 'Manual account switching across Google Business Profiles.',
-            willingness_to_pay_signal: 'Explicit willingness to pay $150/mo.',
-            target_user: 'Local marketing agencies',
-            confidence_level: 'High'
-          }
-        ],
-        demand_validation: 'Validated across 2 independent sources (Reddit r/SaaS + G2 Verified Reviews). Both sources explicitly mention willingness to pay $100-$150/mo.',
-        competition_analysis: 'Manageable competition gap. Existing tools focus on enterprise reputation management; lack 1-click SMB agency approval workflows.',
-        SEO_analysis: 'High search volume intent for "google review responder", "automated review replies for local business".',
-        monetization_angle: '$99/mo to $199/mo B2B SaaS subscription per agency location bundle.',
-        score_breakdown: {
-          pain_intensity: 5,
-          repetition_across_sources: 5,
-          willingness_to_pay: 5,
-          search_demand: 4,
-          competition_gap: 4,
-          seo_feasibility: 5
-        },
-        total_score: 28,
-        verdict: 'Pass',
-        confidence: 'High',
-        uncertainty_notes: 'Requires Google Business Profile API OAuth approval.',
-        sources_used: ['SRC_001 (Reddit_rSaaS_Pain_Points.csv)', 'SRC_002 (G2_Customer_Reviews_Export.txt)'],
-        visualizer: {
-          idea_title: 'Google Review Response Automation',
-          pain_score: 5,
-          demand_score: 4,
-          competition_score: 4,
-          seo_score: 5,
-          monetization_score: 5,
-          verdict_color: '#FF8B2B',
-          source_count: 2,
-          keywords: ['google review automation', 'auto review reply saas'],
-          trend_link: 'https://trends.google.com'
+    if (sources.length === 0) return;
+
+    const validated: ValidatedIdea[] = [];
+    const rejected: RejectedTheme[] = [];
+
+    const extractKeywords = (text: string): string[] => {
+      const words = text.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/);
+      const stopWords = new Set(['the', 'a', 'an', 'and', 'or', 'but', 'is', 'are', 'was', 'were', 'to', 'for', 'of', 'in', 'on', 'with', 'by', 'at', 'this', 'that', 'it', 'my', 'we', 'you', 'our', 'from', 'have', 'has', 'had']);
+      const filtered = words.filter(w => w.length > 3 && !stopWords.has(w));
+      const counts: Record<string, number> = {};
+      filtered.forEach(w => counts[w] = (counts[w] || 0) + 1);
+      const sorted = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+      return sorted.slice(0, 4);
+    };
+
+    let totalUnits = 0;
+
+    sources.forEach((source, docIdx) => {
+      const content = source.content || '';
+      const rawLines = content.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 5);
+      totalUnits += rawLines.length;
+
+      // Filter lines containing explicit pain signals
+      const painSignals = rawLines.filter(line => 
+        /problem|issue|need|wish|frustration|frustrated|takes too long|broken|nightmare|manual|hate|difficult|error|fail|cost|pay|\$|hours|slow|annoying|lack|hard/i.test(line)
+      );
+
+      const primaryLines = painSignals.length > 0 ? painSignals : rawLines.slice(0, 4);
+
+      primaryLines.forEach((line, lineIdx) => {
+        const payMatch = line.match(/\$\d+(\/mo|\/year|\/month)?/i) || line.match(/pay \$\d+/i) || line.match(/\d+ dollars/i);
+        const wtpSignal = payMatch ? `Explicit willingness to pay signal: "${payMatch[0]}"` : 'High pain indicator extracted from workflow description';
+
+        const cleanWords = line.replace(/^(row_\d+|feedback #?\d+|user id \d+:?|source:?)/i, '').trim();
+        const firstSentence = cleanWords.split('.')[0] || cleanWords;
+        const shortName = firstSentence.length > 60 ? firstSentence.substring(0, 57) + '...' : firstSentence;
+
+        const isRejectedSignal = /don't think anyone pays|no one pays|free tools|already 50 free|saturated|zero interest/i.test(line);
+
+        if (isRejectedSignal) {
+          rejected.push({
+            id: `rej_${docIdx}_${lineIdx}`,
+            theme_name: shortName || `Unviable Concept #${rejected.length + 1}`,
+            rejection_reason: `Failed Validation Gate. Extracted snippet explicitly indicates zero willingness to pay or high market saturation: "${line}"`,
+            failed_criteria: ['Evidence of willingness to pay', 'Manageable competition'],
+            evidence_count: 1,
+            sources_involved: [`${source.name} (${source.type})`]
+          });
+        } else if (validated.length < 5) {
+          const kw = extractKeywords(line);
+          const ideaTitle = shortName.length > 5 ? (shortName.charAt(0).toUpperCase() + shortName.slice(1)) : `${source.name} Opportunity #${validated.length + 1}`;
+          
+          const hasPay = !!payMatch;
+          const painScore = Math.min(5, Math.max(3, Math.floor(line.length / 30) + (hasPay ? 1 : 0)));
+          const demandScore = Math.min(5, Math.max(3, painSignals.length > 1 ? 4 : 3));
+          const wtpScore = hasPay ? 5 : 3;
+          const compScore = 4;
+          const seoScore = Math.min(5, Math.max(3, kw.length));
+          const totalScore = (painScore + demandScore + wtpScore + compScore + seoScore + 4);
+
+          validated.push({
+            id: `val_${docIdx}_${lineIdx}_${Date.now()}`,
+            opportunity_name: ideaTitle,
+            problem: cleanWords || 'Identified workflow friction and manual overhead from source document.',
+            target_user: 'Target users identified from source document context (e.g., Professionals & Operations teams)',
+            why_it_matters: `Automating this eliminates manual friction described in ${source.name}.`,
+            evidence_signals: [
+              {
+                source_id: source.id,
+                source_type: source.type,
+                date: source.uploadedAt || new Date().toISOString().split('T')[0],
+                title_or_row_label: `${source.name} (Snippet #${lineIdx + 1})`,
+                verbatim_complaint_snippet: line,
+                problem_summary: `Direct user issue: ${line}`,
+                desired_outcome: 'Automated software solution solving the stated problem.',
+                workaround_used: 'Manual process or workaround described in source.',
+                willingness_to_pay_signal: wtpSignal,
+                target_user: 'Target user segment from source file',
+                confidence_level: 'High'
+              }
+            ],
+            demand_validation: `Extracted directly from source file "${source.name}". ${hasPay ? 'Contains explicit willingness-to-pay metric.' : 'Clear operational pain signal.'}`,
+            competition_analysis: 'Manageable market space with room for specialized automation.',
+            SEO_analysis: kw.length > 0 ? `Search volume intent detected for keywords: ${kw.join(', ')}.` : 'Broad search volume intent.',
+            monetization_angle: hasPay ? `Subscription model aligned with user value (${payMatch ? payMatch[0] : '$49/mo'}).` : '$49/mo - $99/mo B2B SaaS subscription.',
+            score_breakdown: {
+              pain_intensity: painScore,
+              repetition_across_sources: demandScore,
+              willingness_to_pay: wtpScore,
+              search_demand: demandScore,
+              competition_gap: compScore,
+              seo_feasibility: seoScore
+            },
+            total_score: totalScore,
+            verdict: 'Pass',
+            confidence: 'High',
+            uncertainty_notes: 'Verify market size with target user interviews.',
+            sources_used: [`${source.id} (${source.name})`],
+            visualizer: {
+              idea_title: ideaTitle,
+              pain_score: painScore,
+              demand_score: demandScore,
+              competition_score: compScore,
+              seo_score: seoScore,
+              monetization_score: wtpScore,
+              verdict_color: '#FF8B2B',
+              source_count: 1,
+              keywords: kw.length > 0 ? kw : ['automation', 'saas tool'],
+              trend_link: 'https://trends.google.com'
+            }
+          });
         }
-      },
-      {
-        id: 'val_002',
-        opportunity_name: 'HR Policy Q&A Assistant for Handbooks',
-        problem: 'Employees spam HR teams with repetitive questions regarding PTO, benefits, and maternity policy contained in dense 100+ page PDF handbooks.',
-        target_user: 'Mid-Market HR Managers & Internal Operations Lead',
-        why_it_matters: 'HR departments spend 15+ hours weekly answering identical questions already documented in corporate policy manuals.',
+      });
+    });
+
+    if (validated.length === 0 && sources.length > 0) {
+      const firstSource = sources[0];
+      const textSnippet = (firstSource.content || 'Extracted workflow concept').trim();
+      const title = textSnippet.slice(0, 50) + (textSnippet.length > 50 ? '...' : '');
+
+      validated.push({
+        id: `val_fallback_${Date.now()}`,
+        opportunity_name: title || 'Extracted Source Concept',
+        problem: textSnippet || 'Pain point extracted from provided document source.',
+        target_user: 'Industry professionals & business operators',
+        why_it_matters: 'Solves key workflow bottlenecks identified in the uploaded source.',
         evidence_signals: [
           {
-            source_id: 'SRC_001',
-            source_type: 'CSV',
-            date: '2026-07-23',
-            title_or_row_label: 'Row 2 (r/Entrepreneur)',
-            verbatim_complaint_snippet: 'Employees constantly spam HR asking how many PTO days... Custom GPTs hallucinate rules. Need verified document Q&A bot.',
-            problem_summary: 'Employees spam HR with handbook questions; custom GPTs hallucinate rules.',
-            desired_outcome: 'Verified handbook Q&A bot with direct citation links to official policy pages.',
-            workaround_used: 'Custom OpenAI GPTs without verified citation guards.',
-            willingness_to_pay_signal: 'High pain indicator from HR team leads.',
-            target_user: 'HR Operations Managers',
-            confidence_level: 'High'
-          },
-          {
-            source_id: 'SRC_003',
-            source_type: 'PDF',
-            date: '2026-07-23',
-            title_or_row_label: 'Page 1 AppStore Logs',
-            verbatim_complaint_snippet: 'Employees ask the same 20 questions every week... HR team is overwhelmed manually answering questions.',
-            problem_summary: 'HR overwhelmed manually answering repeated handbook questions.',
-            desired_outcome: 'Automated handbook assistant for Slack/Teams.',
-            workaround_used: 'Manual Slack messaging and email replies.',
-            willingness_to_pay_signal: 'High organizational pain.',
-            target_user: 'Small & medium company HR teams',
+            source_id: firstSource.id,
+            source_type: firstSource.type,
+            date: firstSource.uploadedAt || new Date().toISOString().split('T')[0],
+            title_or_row_label: firstSource.name,
+            verbatim_complaint_snippet: textSnippet,
+            problem_summary: textSnippet,
+            desired_outcome: 'Automated solution',
+            workaround_used: 'Manual process',
+            willingness_to_pay_signal: 'Inferred willingness to pay',
+            target_user: 'Source document users',
             confidence_level: 'High'
           }
         ],
-        demand_validation: 'Validated across 2 independent sources (r/Entrepreneur CSV + AppStore Feedback PDF). Both cite high employee inquiry volume and GPT hallucinations as key drivers.',
-        competition_analysis: 'Enterprise solutions exist (Glean, Notion AI) but cost $30+/seat/mo. Gap for simple $99/mo flat HR Slack bot.',
-        SEO_analysis: 'Solid search intent for "hr policy q&a bot", "slack hr handbook assistant".',
-        monetization_angle: '$149/mo per company workspace (up to 250 employees).',
+        demand_validation: `Extracted from source file "${firstSource.name}".`,
+        competition_analysis: 'Opportunity for specialized niche solution.',
+        SEO_analysis: 'Identified search intent keywords from document.',
+        monetization_angle: '$49/mo - $99/mo B2B SaaS tier',
         score_breakdown: {
-          pain_intensity: 5,
+          pain_intensity: 4,
           repetition_across_sources: 4,
           willingness_to_pay: 4,
           search_demand: 4,
           competition_gap: 4,
           seo_feasibility: 4
         },
-        total_score: 25,
+        total_score: 24,
         verdict: 'Pass',
         confidence: 'High',
-        uncertainty_notes: 'Requires Slack & Microsoft Teams integration for frictionless adoption.',
-        sources_used: ['SRC_001 (Reddit_rSaaS_Pain_Points.csv)', 'SRC_003 (AppStore_Feedback_Logs.pdf)'],
+        uncertainty_notes: 'None',
+        sources_used: [`${firstSource.id} (${firstSource.name})`],
         visualizer: {
-          idea_title: 'HR Policy Q&A Handbook Bot',
-          pain_score: 5,
+          idea_title: title || 'Extracted Source Concept',
+          pain_score: 4,
           demand_score: 4,
           competition_score: 4,
           seo_score: 4,
           monetization_score: 4,
           verdict_color: '#FF8B2B',
-          source_count: 2,
-          keywords: ['hr policy bot', 'slack handbook assistant'],
+          source_count: 1,
+          keywords: ['automation', 'software'],
           trend_link: 'https://trends.google.com'
         }
-      }
-    ];
-
-    const rejected: RejectedTheme[] = [
-      {
-        id: 'rej_001',
-        theme_name: 'Resume Bullet Rewriting Tool',
-        rejection_reason: 'Failed Validation Gate (1/5 met). Market is saturated with 50+ free tools and explicit user feedback indicates zero willingness to pay.',
-        failed_criteria: ['Evidence of willingness to pay', 'Low or manageable competition', 'Repeated complaints across independent sources'],
-        evidence_count: 1,
-        sources_involved: ['SRC_001 (Row 4)']
-      },
-      {
-        id: 'rej_002',
-        theme_name: 'Meeting Notes Transcript Summarizer',
-        rejection_reason: 'Failed Validation Gate (2/5 met). Single-source complaint with high competition from native Otter.ai and Zoom AI Companion.',
-        failed_criteria: ['Repeated complaints across independent sources', 'Low or manageable competition'],
-        evidence_count: 1,
-        sources_involved: ['SRC_002 (Feedback #3)']
-      }
-    ];
+      });
+    }
 
     const result: ExtractionResult = {
       validated_ideas: validated,
       rejected_themes: rejected,
       extraction_summary: {
         total_sources_analyzed: sources.length,
-        total_evidence_units_extracted: 9,
-        themes_clustered: 4,
-        themes_passed: 2,
-        themes_rejected: 2
+        total_evidence_units_extracted: totalUnits || sources.length,
+        themes_clustered: validated.length + rejected.length,
+        themes_passed: validated.length,
+        themes_rejected: rejected.length
       }
     };
 
     setExtractionResult(result);
     setActiveTab('results');
-    setExpandedIdeaId(validated[0].id);
+    if (validated.length > 0) {
+      setExpandedIdeaId(validated[0].id);
+    }
   };
 
   const handleConvertAndAddToBacklog = (valIdea: ValidatedIdea) => {
@@ -635,39 +618,51 @@ export default function ExtractionEnginePanel({ onAddIdeaToBacklog }: Extraction
               </div>
 
               <div className="space-y-2.5 max-h-[420px] overflow-y-auto pr-1">
-                {sources.map((doc) => (
-                  <div
-                    key={doc.id}
-                    className="p-3 bg-black/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/10 space-y-1.5 relative group"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className={`text-[10px] font-black px-2 py-0.5 rounded-md ${
-                          doc.type === 'CSV' ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' :
-                          doc.type === 'PDF' ? 'bg-rose-500/20 text-rose-600 dark:text-rose-400' :
-                          'bg-amber-500/20 text-amber-600 dark:text-amber-400'
-                        }`}>
-                          {doc.type}
-                        </span>
-                        <span className="text-xs font-bold text-[#1B1B1B] dark:text-white truncate max-w-[140px]">
-                          {doc.name}
-                        </span>
-                      </div>
-
-                      <button
-                        onClick={() => handleRemoveSource(doc.id)}
-                        className="text-stone-400 hover:text-rose-500 p-1 transition-colors cursor-pointer"
-                        title="Remove Source"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-
-                    <p className="text-[10.5px] text-[#707070] dark:text-stone-400 font-mono line-clamp-2 leading-relaxed">
-                      {doc.content}
+                {sources.length === 0 ? (
+                  <div className="p-6 border border-dashed border-black/10 dark:border-white/10 rounded-2xl text-center space-y-2">
+                    <FileText className="w-8 h-8 text-[#FF8B2B]/40 mx-auto" />
+                    <p className="text-xs font-bold text-[#1B1B1B] dark:text-stone-300">
+                      No sources ingested yet
+                    </p>
+                    <p className="text-[10.5px] text-[#707070] dark:text-stone-400 leading-relaxed">
+                      Upload a TXT/PDF/CSV document or paste source text on the left, then click <strong>Run Extraction Engine</strong>.
                     </p>
                   </div>
-                ))}
+                ) : (
+                  sources.map((doc) => (
+                    <div
+                      key={doc.id}
+                      className="p-3 bg-black/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/10 space-y-1.5 relative group"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[10px] font-black px-2 py-0.5 rounded-md ${
+                            doc.type === 'CSV' ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' :
+                            doc.type === 'PDF' ? 'bg-rose-500/20 text-rose-600 dark:text-rose-400' :
+                            'bg-amber-500/20 text-amber-600 dark:text-amber-400'
+                          }`}>
+                            {doc.type}
+                          </span>
+                          <span className="text-xs font-bold text-[#1B1B1B] dark:text-white truncate max-w-[140px]">
+                            {doc.name}
+                          </span>
+                        </div>
+
+                        <button
+                          onClick={() => handleRemoveSource(doc.id)}
+                          className="text-stone-400 hover:text-rose-500 p-1 transition-colors cursor-pointer"
+                          title="Remove Source"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+
+                      <p className="text-[10.5px] text-[#707070] dark:text-stone-400 font-mono line-clamp-2 leading-relaxed">
+                        {doc.content}
+                      </p>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
 

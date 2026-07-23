@@ -5,18 +5,10 @@ import {
   Moon,
   Trash2,
   RefreshCw,
-  Sliders,
   Shield,
-  Key,
   Database,
   CheckCircle2,
   AlertTriangle,
-  Zap,
-  Mail,
-  Copy,
-  Check,
-  ExternalLink,
-  Send,
 } from 'lucide-react';
 
 interface SettingsPanelProps {
@@ -24,50 +16,6 @@ interface SettingsPanelProps {
   onLoadSampleData: () => void;
   ideasCount: number;
 }
-
-const APPS_SCRIPT_CODE_SNIPPET = `function doPost(e) {
-  try {
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-    
-    // Auto-create header row if sheet is fresh
-    if (sheet.getLastRow() === 0) {
-      sheet.appendRow(["Timestamp", "Email Address", "Source", "User Agent"]);
-      sheet.getRange(1, 1, 1, 4).setFontWeight("bold").setBackground("#FF8B2B").setFontColor("#FFFFFF");
-    }
-
-    var email = "";
-    var source = "Landing Page";
-    var userAgent = "";
-
-    if (e && e.postData && e.postData.contents) {
-      var data = JSON.parse(e.postData.contents);
-      email = data.email || "";
-      source = data.source || "Landing Page Access";
-      userAgent = data.userAgent || "";
-    } else if (e && e.parameter) {
-      email = e.parameter.email || "";
-      source = e.parameter.source || "Landing Page Access";
-      userAgent = e.parameter.userAgent || "";
-    }
-
-    if (email) {
-      var timestamp = new Date();
-      sheet.appendRow([timestamp, email, source, userAgent]);
-      return ContentService.createTextOutput(JSON.stringify({ "result": "success", "email": email }))
-        .setMimeType(ContentService.MimeType.JSON);
-    } else {
-      return ContentService.createTextOutput(JSON.stringify({ "result": "error", "message": "No email provided" }))
-        .setMimeType(ContentService.MimeType.JSON);
-    }
-  } catch (error) {
-    return ContentService.createTextOutput(JSON.stringify({ "result": "error", "message": error.toString() }))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}
-
-function doGet(e) {
-  return ContentService.createTextOutput("IdeaCatalyst Web App Script is active!");
-}`;
 
 export default function SettingsPanel({ onClearBacklog, onLoadSampleData, ideasCount }: SettingsPanelProps) {
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -82,13 +30,7 @@ export default function SettingsPanel({ onClearBacklog, onLoadSampleData, ideasC
     return localStorage.getItem('settings_workspace_name') || 'Alex\'s Lab';
   });
 
-  const [appsScriptUrl, setAppsScriptUrl] = useState<string>(() => {
-    return localStorage.getItem('apps_script_url') || (import.meta as any).env?.VITE_APPS_SCRIPT_URL || '';
-  });
-
   const [showToast, setShowToast] = useState<string | null>(null);
-  const [copiedCode, setCopiedCode] = useState<boolean>(false);
-  const [isTestingWebhook, setIsTestingWebhook] = useState<boolean>(false);
 
   useEffect(() => {
     if (theme === 'dark') {
@@ -121,56 +63,6 @@ export default function SettingsPanel({ onClearBacklog, onLoadSampleData, ideasC
     window.dispatchEvent(new Event('storage'));
   };
 
-  const handleSaveAppsScriptUrl = (e: React.FormEvent) => {
-    e.preventDefault();
-    localStorage.setItem('apps_script_url', appsScriptUrl.trim());
-    triggerToast('Google Apps Script Webhook URL saved successfully!');
-  };
-
-  const handleCopyCode = () => {
-    navigator.clipboard.writeText(APPS_SCRIPT_CODE_SNIPPET);
-    setCopiedCode(true);
-    triggerToast('Google Apps Script code copied to clipboard!');
-    setTimeout(() => setCopiedCode(false), 3000);
-  };
-
-  const handleTestWebhook = async () => {
-    const url = appsScriptUrl.trim();
-    if (!url) {
-      triggerToast('Please paste a valid Google Apps Script Web App URL first!');
-      return;
-    }
-
-    setIsTestingWebhook(true);
-    try {
-      localStorage.setItem('apps_script_url', url);
-      await fetch(url, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: 'test_founder@ideacatalyst.io',
-          source: 'Webhook Connection Test',
-          timestamp: new Date().toISOString(),
-          userAgent: navigator.userAgent
-        }),
-      });
-      triggerToast('Test payload dispatched to Google Sheets! Check your Google Sheet rows.');
-    } catch (err) {
-      console.error(err);
-      triggerToast('Failed to reach endpoint. Verify URL permissions.');
-    } finally {
-      setIsTestingWebhook(false);
-    }
-  };
-
-  const handleTogglePuter = () => {
-    const newValue = !usePuterAI;
-    setUsePuterAI(newValue);
-    localStorage.setItem('settings_use_puter_ai', String(newValue));
-    triggerToast(`Analysis engine set to ${newValue ? 'Puter.js AI' : 'Local Deterministic'}`);
-  };
-
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-12">
       {/* Page Title */}
@@ -181,7 +73,7 @@ export default function SettingsPanel({ onClearBacklog, onLoadSampleData, ideasC
             Workspace Settings
           </h2>
           <p className="text-xs text-[#707070] dark:text-stone-400 font-medium mt-1">
-            Configure system themes, Google Sheets email webhooks, and local database storage.
+            Configure system themes and local database storage.
           </p>
         </div>
       </div>
@@ -274,100 +166,7 @@ export default function SettingsPanel({ onClearBacklog, onLoadSampleData, ideasC
             </div>
           </div>
 
-          {/* Section 2: Google Sheets Email Webhook */}
-          <div className="liquid-glass-card rounded-3xl p-6 space-y-5 border border-[#FF9D42]/20">
-            <div>
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-[#1B1B1B] dark:text-white flex items-center gap-2">
-                  <Mail className="w-4 h-4 text-[#FF9D42]" />
-                  Google Sheets Email Storage Sync
-                </h3>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#FF8B2B]/10 text-[#FF8B2B]">
-                  Live Integration
-                </span>
-              </div>
-              <p className="text-[11px] text-[#707070] dark:text-stone-400 font-medium mt-1">
-                Automatically append user email submissions directly into your private Google Sheet spreadsheet.
-              </p>
-            </div>
-
-            {/* Form for Webhook URL */}
-            <form onSubmit={handleSaveAppsScriptUrl} className="space-y-3">
-              <div>
-                <label className="text-[10px] font-bold text-[#999999] dark:text-stone-400 uppercase block mb-1">
-                  Google Apps Script Deployment Web App URL
-                </label>
-                <input
-                  id="apps-script-url-input"
-                  type="url"
-                  value={appsScriptUrl}
-                  onChange={(e) => setAppsScriptUrl(e.target.value)}
-                  className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:border-[#FF9D42] rounded-xl px-4 py-2.5 text-xs font-semibold text-[#1B1B1B] dark:text-white outline-none"
-                  placeholder="https://script.google.com/macros/s/AKfycbx.../exec"
-                />
-              </div>
-
-              <div className="flex items-center gap-2 pt-1">
-                <button
-                  type="submit"
-                  id="save-apps-script-url-btn"
-                  className="px-4 py-2 bg-gradient-to-r from-[#FF9D42] to-[#FF8B2B] text-white font-bold text-xs rounded-xl transition-all hover:shadow-md cursor-pointer"
-                >
-                  Save URL
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleTestWebhook}
-                  disabled={isTestingWebhook}
-                  id="test-apps-script-btn"
-                  className="px-4 py-2 bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 text-[#1B1B1B] dark:text-stone-200 font-bold text-xs rounded-xl transition-all cursor-pointer flex items-center gap-1.5"
-                >
-                  <Send className="w-3.5 h-3.5 text-[#FF9D42]" />
-                  <span>{isTestingWebhook ? 'Sending Ping...' : 'Test Connection'}</span>
-                </button>
-              </div>
-            </form>
-
-            {/* Google Apps Script Code Box */}
-            <div className="space-y-2 pt-2 border-t border-black/5 dark:border-white/10">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-[#1B1B1B] dark:text-stone-200 flex items-center gap-1.5">
-                  <Key className="w-3.5 h-3.5 text-[#FF8B2B]" />
-                  Google Apps Script Code (.gs)
-                </span>
-                <button
-                  type="button"
-                  onClick={handleCopyCode}
-                  className="text-xs font-bold text-[#FF8B2B] hover:text-[#FF7A12] flex items-center gap-1 cursor-pointer bg-[#FF8B2B]/10 hover:bg-[#FF8B2B]/20 px-2.5 py-1 rounded-lg transition-colors"
-                >
-                  {copiedCode ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copiedCode ? 'Copied Code!' : 'Copy Code'}</span>
-                </button>
-              </div>
-
-              <pre className="bg-[#12100E] text-stone-300 p-3.5 rounded-xl text-[11px] font-mono leading-relaxed overflow-x-auto border border-stone-800 max-h-40">
-                {APPS_SCRIPT_CODE_SNIPPET}
-              </pre>
-
-              {/* Instructions Guide */}
-              <div className="bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/20 p-3.5 rounded-2xl text-[11px] text-[#707070] dark:text-stone-300 space-y-1.5 font-medium">
-                <p className="font-bold text-[#1B1B1B] dark:text-white flex items-center gap-1.5">
-                  <span>📌 How to Setup Google Sheets Backend:</span>
-                </p>
-                <ol className="list-decimal list-inside space-y-1 leading-relaxed text-[10.5px]">
-                  <li>Open your <strong>Google Sheet</strong> spreadsheet.</li>
-                  <li>Go to menu <strong>Extensions → Apps Script</strong>.</li>
-                  <li>Paste the copied script code above into <code>Code.gs</code>.</li>
-                  <li>Click <strong>Deploy → New deployment</strong>.</li>
-                  <li>Select type <strong>Web App</strong>. Set <i>Execute as: Me</i> and <i>Who has access: Anyone</i>.</li>
-                  <li>Click <strong>Deploy</strong>, copy the Web App URL, and paste it into the field above!</li>
-                </ol>
-              </div>
-            </div>
-          </div>
-
-          {/* Section 3: Workspace customization */}
+          {/* Section 2: Workspace customization */}
           <div className="liquid-glass-card rounded-3xl p-6">
             <h3 className="text-sm font-bold text-[#1B1B1B] dark:text-white flex items-center gap-2 mb-1">
               <Database className="w-4 h-4 text-[#FF9D42]" />
@@ -399,7 +198,6 @@ export default function SettingsPanel({ onClearBacklog, onLoadSampleData, ideasC
               </button>
             </form>
           </div>
-
         </div>
 
         {/* Right Column: Database / Backlog Clean Controls */}

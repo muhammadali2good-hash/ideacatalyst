@@ -762,23 +762,6 @@ Be creative, complete, and extremely realistic in filling out every field. Do no
                 {/* Bento Statistics & charts Section */}
                 <BentoStats ideas={ideas} />
 
-                {/* Add Ideas fast CTA Banner */}
-                <div className="bg-white/65 dark:bg-[#161412]/80 backdrop-blur-xl border border-white/45 dark:border-[#FF9D42]/20 shadow-sm rounded-3xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="space-y-1">
-                    <span className="text-[10px] font-bold text-[#FF8B2B] uppercase tracking-wider block">Quick Ingest</span>
-                    <h4 className="text-sm font-bold text-[#1B1B1B] dark:text-white">Ready to evaluate a new project concept?</h4>
-                    <p className="text-xs text-[#707070] dark:text-stone-300 font-medium">Instantly analyze text descriptions or PDF briefs with custom weights.</p>
-                  </div>
-                  <button
-                    id="dashboard-evaluate-quick-btn"
-                    onClick={() => setActiveTab('uploads')}
-                    className="px-5 py-2.5 bg-gradient-to-r from-[#FF9D42] to-[#FF8B2B] text-white font-bold text-xs rounded-2xl flex items-center gap-1.5 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] self-start sm:self-auto shadow-sm"
-                  >
-                    <span>Analyze New Idea</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                </div>
-
                 {/* Extracted Ideas Section 3 */}
                 <div className="space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
