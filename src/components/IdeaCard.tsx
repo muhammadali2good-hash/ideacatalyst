@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Idea } from '../types';
 import { Heart, Share2, ArrowUpRight, Folder, TrendingUp, AlertTriangle, Trash2 } from 'lucide-react';
+import { ResponsiveContainer, AreaChart, Area, Tooltip } from 'recharts';
 
 interface IdeaCardProps {
   key?: string;
@@ -38,17 +39,19 @@ export default function IdeaCard({ idea, onOpenDetails, isFavorited, onToggleFav
     }
   };
 
-  // Build the mini SVG sparkline path
-  const minVal = Math.min(...idea.sparkline);
-  const maxVal = Math.max(...idea.sparkline);
-  const delta = maxVal - minVal || 1;
-  const sparklinePoints = idea.sparkline
-    .map((val, idx) => {
-      const x = (idx / (idea.sparkline.length - 1)) * 60;
-      const y = 25 - ((val - minVal) / delta) * 20;
-      return `${x},${y}`;
-    })
-    .join(' ');
+  // Build the recharts data array
+  const sparklineData = idea.sparkline && idea.sparkline.length > 0
+    ? idea.sparkline.map((val, idx) => ({ step: `M${idx + 1}`, value: val }))
+    : [
+        { step: 'M1', value: 20 },
+        { step: 'M2', value: 35 },
+        { step: 'M3', value: 50 },
+        { step: 'M4', value: 68 },
+        { step: 'M5', value: 82 },
+      ];
+
+  const gradientId = `sparkline-grad-${idea.id.replace(/[^a-zA-Z0-9]/g, '')}`;
+  const strokeColor = idea.score >= 80 ? '#FF8B2B' : idea.score >= 65 ? '#F59E0B' : '#22C55E';
 
   return (
     <div
@@ -155,19 +158,42 @@ export default function IdeaCard({ idea, onOpenDetails, isFavorited, onToggleFav
 
       {/* Bottom Row: Actions & Sparkline */}
       <div className="flex items-center justify-between pt-3 mt-auto">
-        {/* Sparkline Visualizer */}
-        <div className="flex items-center gap-2">
-          <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
-          <svg className="w-16 h-8 overflow-visible" viewBox="0 0 60 25">
-            <polyline
-              fill="none"
-              stroke="#22C55E"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              points={sparklinePoints}
-            />
-          </svg>
+        {/* Recharts Sparkline Growth Trajectory Chart */}
+        <div className="flex items-center gap-1.5" title={`Growth Trajectory (${idea.trend})`}>
+          <TrendingUp className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+          <div className="w-20 h-7 relative">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={sparklineData} margin={{ top: 2, right: 2, left: 2, bottom: 2 }}>
+                <defs>
+                  <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={strokeColor} stopOpacity={0.4} />
+                    <stop offset="95%" stopColor={strokeColor} stopOpacity={0.0} />
+                  </linearGradient>
+                </defs>
+                <Tooltip
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <div className="bg-black/90 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded shadow-sm pointer-events-none z-50">
+                          {payload[0].value}%
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="value"
+                  stroke={strokeColor}
+                  strokeWidth={2}
+                  fillOpacity={1}
+                  fill={`url(#${gradientId})`}
+                  isAnimationActive={false}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
         {/* Icons row */}

@@ -13,15 +13,79 @@ import {
   Zap,
   ChevronRight,
   Database,
-  Globe
+  Globe,
+  Mail,
+  X,
+  AlertCircle
 } from 'lucide-react';
 
 interface LandingPageProps {
-  onGoToDashboard: () => void;
+  onGoToDashboard: (email: string) => void;
+  savedEmail?: string;
 }
 
-export default function LandingPage({ onGoToDashboard }: LandingPageProps) {
+export default function LandingPage({ onGoToDashboard, savedEmail = '' }: LandingPageProps) {
   const [activePage, setActivePage] = React.useState<'framework' | 'problem' | 'solutions'>('framework');
+  const [email, setEmail] = React.useState<string>(savedEmail);
+  const [emailError, setEmailError] = React.useState<string>('');
+  const [showEmailModal, setShowEmailModal] = React.useState<boolean>(false);
+
+  React.useEffect(() => {
+    if (savedEmail) {
+      setEmail(savedEmail);
+    }
+  }, [savedEmail]);
+
+  const isValidEmail = (val: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim());
+  };
+
+  const sendEmailToAppsScript = async (userEmail: string) => {
+    const url = localStorage.getItem('apps_script_url') || (import.meta as any).env?.VITE_APPS_SCRIPT_URL;
+    if (!url) return;
+    try {
+      await fetch(url, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: userEmail,
+          source: 'Landing Page Access',
+          timestamp: new Date().toISOString(),
+          userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'Web'
+        }),
+      });
+      console.log('Dispatched email to Google Apps Script endpoint');
+    } catch (err) {
+      console.error('Failed to send email to Google Apps Script:', err);
+    }
+  };
+
+  const handleAccessAttempt = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+
+    if (isValidEmail(email)) {
+      const cleanEmail = email.trim();
+      setEmailError('');
+      setShowEmailModal(false);
+      sendEmailToAppsScript(cleanEmail);
+      onGoToDashboard(cleanEmail);
+    } else {
+      const msg = email.trim() === ''
+        ? 'Please enter your email address to access the dashboard.'
+        : 'Please enter a valid email address (e.g. user@example.com).';
+      setEmailError(msg);
+
+      // Focus email input if on hero page, otherwise pop up modal
+      const inputEl = document.getElementById('hero-email-input');
+      if (inputEl && activePage === 'framework') {
+        inputEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        inputEl.focus();
+      } else {
+        setShowEmailModal(true);
+      }
+    }
+  };
 
   // Staggered text fade-in with blur ("cloud mist")
   const mistContainer = {
@@ -115,8 +179,8 @@ export default function LandingPage({ onGoToDashboard }: LandingPageProps) {
 
           <button
             id="landing-header-cta-btn"
-            onClick={onGoToDashboard}
-            className="px-4 py-1.5 bg-[#1B1B1B] dark:bg-white text-white dark:text-[#1B1B1B] hover:bg-[#2C2C2C] dark:hover:bg-stone-100 font-extrabold text-[10px] sm:text-xs rounded-full flex items-center gap-1 transition-all"
+            onClick={() => handleAccessAttempt()}
+            className="px-4 py-1.5 bg-[#1B1B1B] dark:bg-white text-white dark:text-[#1B1B1B] hover:bg-[#2C2C2C] dark:hover:bg-stone-100 font-extrabold text-[10px] sm:text-xs rounded-full flex items-center gap-1 transition-all cursor-pointer"
           >
             <span>Launch</span>
             <ChevronRight className="w-3 h-3" />
@@ -164,28 +228,73 @@ export default function LandingPage({ onGoToDashboard }: LandingPageProps) {
                 </motion.p>
               </div>
 
-              {/* Staggered CTAs */}
-              <motion.div variants={mistItem} className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-                <button
-                  id="hero-go-to-dashboard-btn"
-                  onClick={onGoToDashboard}
-                  className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-[#FF9D42] to-[#FF8B2B] text-white font-extrabold text-sm rounded-2xl flex items-center justify-center gap-2 transition-all duration-300 transform hover:scale-[1.01] active:scale-[0.99] hover:shadow-lg hover:shadow-[#FF9D42]/15 shadow-sm"
+              {/* HERO EMAIL INPUT BOX & CTAS */}
+              <motion.div variants={mistItem} className="space-y-4 max-w-xl mx-auto pt-2">
+                <form
+                  onSubmit={handleAccessAttempt}
+                  className="bg-white/80 dark:bg-[#1A1817]/80 backdrop-blur-xl border border-black/10 dark:border-white/10 p-2 rounded-2xl shadow-xl shadow-black/5 flex flex-col sm:flex-row items-center gap-2 transition-all group focus-within:border-[#FF9D42] focus-within:ring-2 focus-within:ring-[#FF9D42]/20"
                 >
-                  <span>Go to Dashboard</span>
-                  <ArrowRight className="w-4 h-4 stroke-[2.5]" />
-                </button>
-                
-                <button
-                  onClick={() => setActivePage('solutions')}
-                  className="w-full sm:w-auto px-8 py-4 bg-white/60 dark:bg-stone-900/60 hover:bg-white/80 dark:hover:bg-stone-800 border border-black/5 dark:border-white/5 text-[#1B1B1B] dark:text-white font-bold text-sm rounded-2xl flex items-center justify-center gap-1.5 transition-all"
-                >
-                  <span>Learn Framework</span>
-                </button>
+                  <div className="relative flex-1 w-full flex items-center pl-3">
+                    <Mail className="w-4 h-4 text-[#707070] dark:text-stone-400 shrink-0 mr-2.5 group-focus-within:text-[#FF8B2B] transition-colors" />
+                    <input
+                      id="hero-email-input"
+                      type="email"
+                      placeholder="Enter your email to access dashboard..."
+                      value={email}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        if (emailError) setEmailError('');
+                      }}
+                      className="w-full bg-transparent border-0 text-sm font-semibold text-[#1B1B1B] dark:text-white placeholder-[#999999] dark:placeholder-stone-500 outline-none py-2"
+                    />
+                    {email && (
+                      <button
+                        type="button"
+                        onClick={() => { setEmail(''); setEmailError(''); }}
+                        className="text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 p-1 mr-1 cursor-pointer"
+                        title="Clear email"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+
+                  <button
+                    type="submit"
+                    id="hero-go-to-dashboard-btn"
+                    className="w-full sm:w-auto px-6 py-3.5 bg-gradient-to-r from-[#FF9D42] to-[#FF8B2B] hover:from-[#FF8B2B] hover:to-[#FF7A12] text-white font-extrabold text-xs sm:text-sm rounded-xl flex items-center justify-center gap-2 transition-all duration-300 shrink-0 shadow-md shadow-[#FF9D42]/20 cursor-pointer"
+                  >
+                    <span>Launch Dashboard</span>
+                    <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+                  </button>
+                </form>
+
+                {emailError && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-xs font-bold text-red-500 dark:text-red-400 flex items-center justify-center gap-1.5 bg-red-500/10 border border-red-500/20 py-2 px-3 rounded-xl"
+                  >
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{emailError}</span>
+                  </motion.div>
+                )}
+
+                <div className="flex items-center justify-center gap-3 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setActivePage('solutions')}
+                    className="text-xs font-bold text-[#707070] dark:text-stone-400 hover:text-[#1B1B1B] dark:hover:text-white transition-colors cursor-pointer flex items-center gap-1"
+                  >
+                    <span>Learn Framework First</span>
+                    <ChevronRight className="w-3 h-3" />
+                  </button>
+                </div>
               </motion.div>
 
               {/* Micro social proof */}
               <motion.p variants={mistItem} className="text-[11px] text-[#999999] dark:text-stone-500 font-bold tracking-wide uppercase pt-2 flex items-center justify-center gap-4 flex-wrap">
-                <span>✓ No registration required</span>
+                <span>✓ Work or personal email access</span>
                 <span className="w-1 h-1 bg-[#999999] rounded-full" />
                 <span>✓ Secure Browser Chrome DB storage</span>
                 <span className="w-1 h-1 bg-[#999999] rounded-full" />
@@ -407,12 +516,12 @@ export default function LandingPage({ onGoToDashboard }: LandingPageProps) {
                 Stop guessing. Start calculating.
               </h2>
               <p className="text-xs text-[#707070] dark:text-stone-400 font-bold uppercase tracking-wider">
-                Unleash structural evaluation now. No sign-ups. No credit cards.
+                Unleash structural evaluation now. Enter your email to begin.
               </p>
               <div className="pt-2">
                 <button
                   id="landing-bottom-cta-btn"
-                  onClick={onGoToDashboard}
+                  onClick={() => handleAccessAttempt()}
                   className="px-8 py-4 bg-gradient-to-r from-[#FF9D42] to-[#FF8B2B] text-white font-extrabold text-sm rounded-2xl flex items-center justify-center gap-2 transition-all mx-auto shadow-sm hover:scale-[1.01] cursor-pointer"
                 >
                   <span>Get Started Immediately</span>
@@ -554,7 +663,7 @@ export default function LandingPage({ onGoToDashboard }: LandingPageProps) {
                 <p className="text-xs text-[#707070] dark:text-stone-400">Launch our secure browser-encapsulated console now.</p>
               </div>
               <button
-                onClick={onGoToDashboard}
+                onClick={() => handleAccessAttempt()}
                 className="px-6 py-3 bg-[#1B1B1B] dark:bg-white text-white dark:text-[#1B1B1B] font-extrabold text-xs rounded-full hover:opacity-90 transition-all cursor-pointer whitespace-nowrap"
               >
                 Launch Workspace
@@ -569,6 +678,78 @@ export default function LandingPage({ onGoToDashboard }: LandingPageProps) {
       <footer className="border-t border-black/[0.04] dark:border-white/[0.04] py-8 text-center text-[11px] text-[#999999] dark:text-stone-500 font-bold uppercase tracking-widest relative z-50">
         <span>© 2026 IdeaCatalyst Hub. Crafted with premium modular fidelity.</span>
       </footer>
+
+      {/* EMAIL ACCESS MODAL OVERLAY */}
+      {showEmailModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in">
+          <div className="relative w-full max-w-md bg-white dark:bg-[#1C1A19] border border-black/10 dark:border-white/10 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
+            
+            {/* Close button */}
+            <button
+              onClick={() => setShowEmailModal(false)}
+              className="absolute top-4 right-4 p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-gray-400 hover:text-gray-600 dark:hover:text-stone-200 transition-colors cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            {/* Header icon + text */}
+            <div className="text-center space-y-2">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#FF9D42] to-[#FF8B2B] flex items-center justify-center mx-auto shadow-lg shadow-[#FF9D42]/20">
+                <Mail className="w-6 h-6 text-white stroke-[2.5]" />
+              </div>
+              <h3 className="text-xl font-extrabold text-[#1B1B1B] dark:text-white tracking-tight">
+                Email Required for Dashboard
+              </h3>
+              <p className="text-xs text-[#707070] dark:text-stone-400 font-medium">
+                Enter your work or personal email address to unlock full access to the venture catalyst workspace.
+              </p>
+            </div>
+
+            {/* Email Input Form */}
+            <form onSubmit={handleAccessAttempt} className="space-y-4">
+              <div className="space-y-1.5">
+                <label htmlFor="modal-email-input" className="text-[11px] font-bold text-[#707070] dark:text-stone-400 uppercase tracking-wider block text-left">
+                  Email Address
+                </label>
+                <div className="relative flex items-center">
+                  <Mail className="absolute left-3.5 w-4 h-4 text-[#707070] dark:text-stone-400" />
+                  <input
+                    id="modal-email-input"
+                    type="email"
+                    autoFocus
+                    placeholder="name@company.com"
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (emailError) setEmailError('');
+                    }}
+                    className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:border-[#FF9D42] focus:ring-1 focus:ring-[#FF9D42] rounded-xl pl-10 pr-4 py-3 text-sm font-semibold text-[#1B1B1B] dark:text-white placeholder-[#999999] dark:placeholder-stone-500 outline-none transition-all"
+                  />
+                </div>
+                {emailError && (
+                  <p className="text-xs text-red-500 font-bold flex items-center gap-1 pt-1">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    <span>{emailError}</span>
+                  </p>
+                )}
+              </div>
+
+              <button
+                type="submit"
+                id="modal-submit-email-btn"
+                className="w-full py-3.5 bg-gradient-to-r from-[#FF9D42] to-[#FF8B2B] hover:from-[#FF8B2B] hover:to-[#FF7A12] text-white font-black text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 transition-all shadow-md shadow-[#FF9D42]/20 cursor-pointer"
+              >
+                <span>Continue to Dashboard</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </form>
+
+            <p className="text-[10px] text-center text-[#999999] dark:text-stone-500 font-medium">
+              🔒 Your email grants direct access to the workspace and saves your venture backlog.
+            </p>
+          </div>
+        </div>
+      )}
 
     </div>
   );

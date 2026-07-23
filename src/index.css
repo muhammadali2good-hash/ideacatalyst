@@ -14,14 +14,14 @@
 }
 
 .dark {
-  --bg-color: #08080A; /* Pitch Black Luxury Dark Theme */
-  --text-color: #FAFAFA;
-  --card-bg: rgba(18, 18, 22, 0.85);
-  --card-border: rgba(255, 255, 255, 0.12);
-  --shadow-color: rgba(0, 0, 0, 0.6);
-  --inset-white: rgba(255, 255, 255, 0.05);
-  --sidebar-bg: rgba(12, 12, 14, 0.88);
-  --sidebar-border: rgba(255, 255, 255, 0.1);
+  --bg-color: #0B0A09; /* Pitch Black & Orange Luxury Theme */
+  --text-color: #F5F4F0;
+  --card-bg: rgba(18, 16, 14, 0.92);
+  --card-border: rgba(255, 157, 66, 0.22);
+  --shadow-color: rgba(0, 0, 0, 0.90);
+  --inset-white: rgba(255, 157, 66, 0.08);
+  --sidebar-bg: rgba(14, 13, 11, 0.95);
+  --sidebar-border: rgba(255, 157, 66, 0.20);
   color-scheme: dark;
 }
 

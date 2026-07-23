@@ -23,6 +23,27 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<string>('landing');
   const [searchQuery, setSearchQuery] = useState<string>('');
   
+  // User Email state for gated landing page access
+  const [userEmail, setUserEmail] = useState<string>(() => {
+    try {
+      return localStorage.getItem('user_email') || '';
+    } catch (e) {
+      return '';
+    }
+  });
+
+  const handleGoToDashboard = (email: string) => {
+    if (email) {
+      setUserEmail(email);
+      try {
+        localStorage.setItem('user_email', email);
+      } catch (e) {
+        console.error('Failed to save email to localStorage:', e);
+      }
+    }
+    setActiveTab('dashboard');
+  };
+  
   // Data States loaded from persistent browser local storage ("chrome db storage")
   const [ideas, setIdeas] = useState<Idea[]>(() => {
     try {
@@ -639,15 +660,18 @@ Be creative, complete, and extremely realistic in filling out every field. Do no
     };
   });
 
-  // Filter ideas
+  // Filter ideas across title, description, tags, category, and keywords simultaneously
   const filteredIdeas = processedIdeas.filter((idea) => {
-    // Search query check
+    const q = searchQuery.trim().toLowerCase();
+
     const matchesSearch =
-      searchQuery === '' ||
-      idea.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      idea.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      idea.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      idea.tags.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase()));
+      q === '' ||
+      (idea.title && idea.title.toLowerCase().includes(q)) ||
+      (idea.description && idea.description.toLowerCase().includes(q)) ||
+      (idea.tags && idea.tags.some((t) => t.toLowerCase().includes(q))) ||
+      (idea.category && idea.category.toLowerCase().includes(q)) ||
+      (idea.aiSummary && idea.aiSummary.toLowerCase().includes(q)) ||
+      (idea.keywords && idea.keywords.some((k) => k.term.toLowerCase().includes(q)));
 
     // Category check
     const matchesCategory = selectedCategory === 'All' || idea.category === selectedCategory;
@@ -671,8 +695,10 @@ Be creative, complete, and extremely realistic in filling out every field. Do no
   };
 
   if (activeTab === 'landing') {
-    return <LandingPage onGoToDashboard={() => setActiveTab('dashboard')} />;
+    return <LandingPage onGoToDashboard={handleGoToDashboard} savedEmail={userEmail} />;
   }
+
+  const userFirstName = userEmail ? userEmail.split('@')[0] : 'Alex';
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-[#FAF8F5] flex p-4 text-[#1B1B1B] dot-grid">
@@ -702,6 +728,9 @@ Be creative, complete, and extremely realistic in filling out every field. Do no
             setSearchQuery={setSearchQuery}
             onNewAnalysisClick={handleNewAnalysisClick}
             ideas={ideas}
+            onSelectIdea={(idea) => { setSelectedIdea(idea); setActiveTab('idea-details'); }}
+            setActiveTab={setActiveTab}
+            userEmail={userEmail}
           />
 
           {/* MAIN PAGE CONTENTS ROUTING */}
@@ -716,8 +745,8 @@ Be creative, complete, and extremely realistic in filling out every field. Do no
                     <Sparkles className="w-4 h-4 text-[#FF9D42] animate-spin" style={{ animationDuration: '4s' }} />
                     <span>AI ready · 5 new signals today</span>
                   </div>
-                  <h2 className="text-4xl md:text-5xl font-extrabold text-[#1B1B1B] tracking-tight">
-                    Good morning, Alex. <br />
+                  <h2 className="text-4xl md:text-5xl font-extrabold text-[#1B1B1B] tracking-tight capitalize">
+                    Good morning, {userFirstName}. <br />
                     <span className="bg-gradient-to-r from-[#FF9D42] to-[#FF8B2B] bg-clip-text text-transparent">
                       Let's analyze what could win.
                     </span>
