@@ -166,7 +166,7 @@ Be realistic but creative, thorough, and analytical. Do not output any markdown 
 // SaaS Idea Extraction Engine endpoint
 app.post('/api/extract-ideas', async (req, res) => {
   try {
-    const { sources } = req.body; // Array of { id, name, type: 'TXT' | 'PDF' | 'CSV', content }
+    const { sources, targetIdeaCount, extractionHint } = req.body; // Array of { id, name, type: 'TXT' | 'PDF' | 'CSV', content }
 
     if (!sources || !Array.isArray(sources) || sources.length === 0) {
       return res.status(400).json({ error: 'At least one source document (TXT, PDF, or CSV) is required.' });
@@ -187,6 +187,13 @@ CONTENT:
 ${s.content}
 `).join('\n\n');
 
+    const hintInstructions = extractionHint && String(extractionHint).trim()
+      ? `- USER EXTRACTION HINT / FOCUS AREA: "${String(extractionHint).trim()}". Prioritize extracting opportunities matching this direction.`
+      : '';
+    const countInstructions = targetIdeaCount && Number(targetIdeaCount) > 0
+      ? `- TARGET IDEA COUNT: Aim to identify and validate up to ${Number(targetIdeaCount)} distinct opportunities if supported by source data.`
+      : '';
+
     const extractionPrompt = `
 You are the Idea Extraction Engine for a SaaS Idea Validator and SaaS Idea Visualizer.
 
@@ -197,6 +204,8 @@ Your job:
 4) Validate each theme against evidence rules.
 5) Score only themes that pass the validation gate.
 6) Return structured output for the SaaS Idea Visualizer.
+${hintInstructions}
+${countInstructions}
 
 IMPORTANT RULES:
 - Do not invent ideas from imagination.

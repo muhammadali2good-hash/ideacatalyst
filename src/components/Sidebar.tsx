@@ -25,6 +25,7 @@ export default function Sidebar({ activeTab, setActiveTab, ideasCount, onNewAnal
   const menuWorkspace = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'ideas', label: 'Ideas', icon: Lightbulb, badge: ideasCount },
+    { id: 'extraction', label: 'Idea Extraction', icon: Zap },
     { id: 'uploads', label: 'Uploads', icon: UploadCloud },
     { id: 'rules', label: 'Evaluation Rules', icon: Sliders },
   ];

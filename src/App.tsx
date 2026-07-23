@@ -15,6 +15,7 @@ import AnalyticsPanel from './components/AnalyticsPanel';
 import ReportsPanel from './components/ReportsPanel';
 import SettingsPanel from './components/SettingsPanel';
 import LandingPage from './components/LandingPage';
+import ExtractionEnginePanel from './components/ExtractionEnginePanel';
 
 import { Sparkles, ArrowRight, TrendingUp, SlidersHorizontal, Search, RefreshCw, Layers } from 'lucide-react';
 
@@ -886,6 +887,15 @@ Be creative, complete, and extremely realistic in filling out every field. Do no
                   analysisError={analysisError}
                 />
               </div>
+            )}
+
+            {/* TAB: UNIVERSAL IDEA EXTRACTION CONSOLE */}
+            {activeTab === 'extraction' && (
+              <ExtractionEnginePanel
+                onAddIdeaToBacklog={(newIdea) => {
+                  setIdeas((prev) => [newIdea, ...prev]);
+                }}
+              />
             )}
 
             {/* TAB: EVALUATION RULES */}
